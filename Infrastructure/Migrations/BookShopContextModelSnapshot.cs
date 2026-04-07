@@ -174,13 +174,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("BookId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Count")
+                    b.Property<int>("OrderId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("OrderId1")
+                    b.Property<int>("Count")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("PriceAtPurchase")
@@ -188,7 +185,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("BookId", "OrderId");
 
-                    b.HasIndex("OrderId1");
+                    b.HasIndex("OrderId");
 
                     b.ToTable("OrderItems", (string)null);
                 });
@@ -275,7 +272,7 @@ namespace Infrastructure.Migrations
 
                     b.HasOne("Domain.Entities.Order", "Order")
                         .WithMany("Items")
-                        .HasForeignKey("OrderId1")
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
