@@ -7,13 +7,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class EfCoreMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Domain.Entities.Authors",
+                name: "Authors",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -22,11 +22,11 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Domain.Entities.Authors", x => x.Id);
+                    table.PrimaryKey("PK_Authors", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Domain.Entities.Books",
+                name: "Books",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -40,11 +40,11 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Domain.Entities.Books", x => x.Id);
+                    table.PrimaryKey("PK_Books", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Domain.Entities.Customers",
+                name: "Customers",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -54,11 +54,11 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Domain.Entities.Customers", x => x.Id);
+                    table.PrimaryKey("PK_Customers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Domain.Entities.Genres",
+                name: "Genre",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -66,7 +66,7 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Domain.Entities.Genres", x => x.Id);
+                    table.PrimaryKey("PK_Genre", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -80,21 +80,21 @@ namespace Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_AuthorBook", x => new { x.AuthorsId, x.BooksId });
                     table.ForeignKey(
-                        name: "FK_AuthorBook_Domain.Entities.Authors_AuthorsId",
+                        name: "FK_AuthorBook_Authors_AuthorsId",
                         column: x => x.AuthorsId,
-                        principalTable: "Domain.Entities.Authors",
+                        principalTable: "Authors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AuthorBook_Domain.Entities.Books_BooksId",
+                        name: "FK_AuthorBook_Books_BooksId",
                         column: x => x.BooksId,
-                        principalTable: "Domain.Entities.Books",
+                        principalTable: "Books",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Domain.Entities.Orders",
+                name: "Orders",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -106,17 +106,17 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Domain.Entities.Orders", x => x.Id);
+                    table.PrimaryKey("PK_Orders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Domain.Entities.Orders_Domain.Entities.Customers_CustomerId",
+                        name: "FK_Orders_Customers_CustomerId",
                         column: x => x.CustomerId,
-                        principalTable: "Domain.Entities.Customers",
+                        principalTable: "Customers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Domain.Entities.Reviews",
+                name: "Reviews",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -128,17 +128,17 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Domain.Entities.Reviews", x => x.Id);
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Domain.Entities.Reviews_Domain.Entities.Books_BookId",
+                        name: "FK_Reviews_Books_BookId",
                         column: x => x.BookId,
-                        principalTable: "Domain.Entities.Books",
+                        principalTable: "Books",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Domain.Entities.Reviews_Domain.Entities.Customers_CustomerId",
+                        name: "FK_Reviews_Customers_CustomerId",
                         column: x => x.CustomerId,
-                        principalTable: "Domain.Entities.Customers",
+                        principalTable: "Customers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -154,15 +154,15 @@ namespace Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_BookGenre", x => new { x.BooksId, x.GenresId });
                     table.ForeignKey(
-                        name: "FK_BookGenre_Domain.Entities.Books_BooksId",
+                        name: "FK_BookGenre_Books_BooksId",
                         column: x => x.BooksId,
-                        principalTable: "Domain.Entities.Books",
+                        principalTable: "Books",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_BookGenre_Domain.Entities.Genres_GenresId",
+                        name: "FK_BookGenre_Genre_GenresId",
                         column: x => x.GenresId,
-                        principalTable: "Domain.Entities.Genres",
+                        principalTable: "Genre",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -171,25 +171,25 @@ namespace Infrastructure.Migrations
                 name: "OrderItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    OrderId = table.Column<Guid>(type: "uuid", nullable: false),
                     BookId = table.Column<Guid>(type: "uuid", nullable: false),
                     Count = table.Column<int>(type: "integer", nullable: false),
-                    OrderId = table.Column<int>(type: "integer", nullable: false)
+                    PriceAtPurchase = table.Column<decimal>(type: "numeric", nullable: false),
+                    OrderId1 = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderItems", x => x.Id);
+                    table.PrimaryKey("PK_OrderItems", x => new { x.BookId, x.OrderId });
                     table.ForeignKey(
-                        name: "FK_OrderItems_Domain.Entities.Books_BookId",
+                        name: "FK_OrderItems_Books_BookId",
                         column: x => x.BookId,
-                        principalTable: "Domain.Entities.Books",
+                        principalTable: "Books",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_OrderItems_Domain.Entities.Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Domain.Entities.Orders",
+                        name: "FK_OrderItems_Orders_OrderId1",
+                        column: x => x.OrderId1,
+                        principalTable: "Orders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -205,29 +205,24 @@ namespace Infrastructure.Migrations
                 column: "GenresId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Domain.Entities.Orders_CustomerId",
-                table: "Domain.Entities.Orders",
+                name: "IX_OrderItems_OrderId1",
+                table: "OrderItems",
+                column: "OrderId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_CustomerId",
+                table: "Orders",
                 column: "CustomerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Domain.Entities.Reviews_BookId",
-                table: "Domain.Entities.Reviews",
+                name: "IX_Reviews_BookId",
+                table: "Reviews",
                 column: "BookId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Domain.Entities.Reviews_CustomerId",
-                table: "Domain.Entities.Reviews",
+                name: "IX_Reviews_CustomerId",
+                table: "Reviews",
                 column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderItems_BookId",
-                table: "OrderItems",
-                column: "BookId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderItems_OrderId",
-                table: "OrderItems",
-                column: "OrderId");
         }
 
         /// <inheritdoc />
@@ -240,25 +235,25 @@ namespace Infrastructure.Migrations
                 name: "BookGenre");
 
             migrationBuilder.DropTable(
-                name: "Domain.Entities.Reviews");
-
-            migrationBuilder.DropTable(
                 name: "OrderItems");
 
             migrationBuilder.DropTable(
-                name: "Domain.Entities.Authors");
+                name: "Reviews");
 
             migrationBuilder.DropTable(
-                name: "Domain.Entities.Genres");
+                name: "Authors");
 
             migrationBuilder.DropTable(
-                name: "Domain.Entities.Books");
+                name: "Genre");
 
             migrationBuilder.DropTable(
-                name: "Domain.Entities.Orders");
+                name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Domain.Entities.Customers");
+                name: "Books");
+
+            migrationBuilder.DropTable(
+                name: "Customers");
         }
     }
 }
