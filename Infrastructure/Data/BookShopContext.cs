@@ -16,7 +16,7 @@ namespace Infrastructure.Data
         }
 
         public DbSet<Book> Books { get; set; }
-        public DbSet<Author> Author { get; set; }
+        public DbSet<Author> Authors { get; set; }
 
         public DbSet<Customer> Customers { get; set; }
 
@@ -26,6 +26,8 @@ namespace Infrastructure.Data
 
         public DbSet<Review> Reviews { get; set; }
 
+        public DbSet<OrderItems> OrderItems { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,7 +35,7 @@ namespace Infrastructure.Data
 
             modelBuilder.Entity<Book>(e =>
             {
-                e.ToTable(typeof(Book).ToString() + "s");
+                e.ToTable("Books");
                 e.HasKey(k => k.Id);
                 e.HasMany(a => a.Authors).WithMany(b => b.Books);
                 e.HasMany(r => r.Reviews).WithOne(b => b.Book);
@@ -43,26 +45,26 @@ namespace Infrastructure.Data
 
             modelBuilder.Entity<Author>(e =>
             {
-                e.ToTable(typeof(Author).ToString() + "s");
+                e.ToTable("Authors");
                 e.HasKey(k => k.Id);
                 e.HasMany(a => a.Books).WithMany(b => b.Authors);
             });
 
             modelBuilder.Entity<Customer>(e => {
-            e.ToTable(typeof(Customer).ToString() + "s");
+            e.ToTable("Customers");
                 e.HasKey(k => k.Id);
                 e.HasMany(o => o.Orders).WithOne(c => c.Customer);               
 
             });
 
             modelBuilder.Entity<Genre>(e => {
-                e.ToTable(typeof(Genre).ToString() + "s");
+                e.ToTable("Genre");
                 e.HasKey(k => k.Id);
                 e.HasMany(b => b.Books).WithMany(g => g.Genres);
 
             });
             modelBuilder.Entity<Order>(e => {
-            e.ToTable(typeof(Order).ToString() + "s");
+            e.ToTable("Orders");
                 e.HasKey(k => k.Id);
                 e.Property(p => p.Id).ValueGeneratedOnAdd();
                 e.HasMany(oi => oi.Items).WithOne(o => o.Order);
@@ -71,11 +73,18 @@ namespace Infrastructure.Data
             });
 
             modelBuilder.Entity<Review>(e => {
-            e.ToTable(typeof(Review).ToString() + "s");
+            e.ToTable("Reviews");
                 e.HasKey(k => k.Id);
                 e.HasOne(b => b.Book).WithMany(r => r.Reviews);
                 e.HasOne(c => c.Customer).WithMany(r => r.Reviews);
 
+            });
+
+            modelBuilder.Entity<OrderItems>(e => {
+            e.ToTable("OrderItems");
+                e.HasKey(i => new { i.BookId, i.OrderId });
+                e.HasOne(o => o.Order).WithMany(i => i.Items);
+                e.HasOne(b => b.Book);
             });
         }
     }

@@ -67,7 +67,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Domain.Entities.Authors", (string)null);
+                    b.ToTable("Authors", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Book", b =>
@@ -102,7 +102,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Domain.Entities.Books", (string)null);
+                    b.ToTable("Books", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Customer", b =>
@@ -124,7 +124,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Domain.Entities.Customers", (string)null);
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Genre", b =>
@@ -139,7 +139,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Domain.Entities.Genres", (string)null);
+                    b.ToTable("Genre", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Order", b =>
@@ -166,33 +166,31 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Domain.Entities.Orders", (string)null);
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.OrderItems", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<Guid>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Count")
                         .HasColumnType("integer");
 
-                    b.Property<int>("OrderId")
+                    b.Property<int>("OrderId1")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.Property<decimal>("PriceAtPurchase")
+                        .HasColumnType("numeric");
 
-                    b.HasIndex("BookId");
+                    b.HasKey("BookId", "OrderId");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex("OrderId1");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Review", b =>
@@ -223,7 +221,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Domain.Entities.Reviews", (string)null);
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("AuthorBook", b =>
@@ -277,7 +275,7 @@ namespace Infrastructure.Migrations
 
                     b.HasOne("Domain.Entities.Order", "Order")
                         .WithMany("Items")
-                        .HasForeignKey("OrderId")
+                        .HasForeignKey("OrderId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

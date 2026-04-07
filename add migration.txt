@@ -1,0 +1,2 @@
+add migration
+dotnet ef migrations add name --project Infrastructure --startup-project bookshop
