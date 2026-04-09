@@ -1,3 +1,5 @@
+using Application;
+using Application.Services;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,9 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson();
+
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<BookShopContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContext<BookShopContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.Addifrastructure(builder.Configuration);
 
 var app = builder.Build();
 
@@ -16,6 +20,8 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<BookShopContext>();
     context.Database.Migrate();
 }
+
+
 
 // Configure the HTTP request pipeline.
 

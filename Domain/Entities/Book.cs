@@ -20,8 +20,8 @@ namespace Domain.Entities
 
         public int PublicationYear { get; set; } = 0;
 
-        public ICollection<Author> Authors = null!;
-        public ICollection<Genre> Genres = null!;
-        public ICollection<Review> Reviews = null!;
+        public ICollection<Author> Authors = new List<Author>();
+        public ICollection<Genre> Genres = new List<Genre>();
+        public ICollection<Review> Reviews = new List<Review>();
     }
 }

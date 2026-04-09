@@ -1,4 +1,6 @@
-﻿using Domain.Entities;
+﻿using Application.Interfaces;
+using Application.Services;
+using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
@@ -25,8 +27,9 @@ namespace Application
             services.AddScoped<IGenresRepository,GenresRepository>();
             services.AddScoped<IOrdersRepository,OrdersRepository>();
             services.AddScoped<IReviewsRepository,ReviewsRepository>();
-            services.AddScoped<IOrderItemsRepository,IOrderItemsRepository>();
-        return services;
+            services.AddScoped<IOrderItemsRepository,OrderItemsRepository>();
+            services.AddScoped<IBookService,BookService>();
+            return services;
         
         }
 

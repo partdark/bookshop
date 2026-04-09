@@ -1,8 +1,10 @@
 ﻿using Domain.Entities;
+using Infrastructure.Dto;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static Infrastructure.Dto.BooksRepository;
+
 
 
 namespace Infrastructure.Interfaces
@@ -20,8 +22,15 @@ namespace Infrastructure.Interfaces
 
     public interface IBooksRepository : IRepository<Book>
     {
-       
-        Task<PaginatedResult<Book>> TakeBookWithPagging(int pagesize = 20, int pageNumber = 1, string orderBy = "Title", bool ascending = true);
+        public  Task<bool> AddAsyncWithExistsAuthorAndGenres(Book entity, List<Guid> authors, List<Guid> genres);
+        public  Task<List<Guid>> AddAuthorsFromBdToBook(Guid bookId, List<Guid> authors);
+
+
+
+        public  Task<List<Guid>> AddGenresFromBdToBook(Guid bookId, List<Guid> genres);
+        public Task<ListWithBooksBaseData> BooksBaseData(int pageCapacity = 20, int pageNumber = 1, string orderBy = "Title",
+            bool notAscending = false, string? searchingWords = null);
+       public Task<PaginatedResult<Book>> TakeBookWithPagging(int pagesize = 20, int pageNumber = 1, string orderBy = "Title", bool ascending = true);
     }
 
     public interface IAuthorsRepository : IRepository<Author> { }

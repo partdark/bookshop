@@ -1,12 +1,12 @@
 ﻿using Domain.Entities;
 using Infrastructure.Data;
+using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 using System.Linq.Dynamic.Core;
-using static Infrastructure.Dto.BooksRepository;
+using System.Runtime.InteropServices.Marshalling;
+
 
 namespace Infrastructure.Repositories
 {
@@ -22,11 +22,104 @@ namespace Infrastructure.Repositories
 
 
 
+
+        public async Task<ListWithBooksBaseData> BooksBaseData(int pageCapacity = 20, int pageNumber = 1, string orderBy = "Title",
+            bool notAscending = false, string? searchingWords = null)
+        {
+
+            var q = _context.Books.AsQueryable();
+
+            if (searchingWords != null)
+            {
+                q = q.Where(x => EF.Functions.Like(x.Title, $"%{searchingWords}%"));
+            }
+
+
+            if (string.IsNullOrEmpty(orderBy))
+            {
+                orderBy = "Title";
+            }
+            var orderType = notAscending ? "desc" : "asc";
+            q = q.OrderBy($"{orderBy}  {orderType}");
+
+            var booksCount = await _context.Books.CountAsync();
+
+            if (pageCapacity < 1) pageCapacity = 20;
+            if (pageNumber < 1) pageNumber = 1;
+            var lastPage = (int)Math.Ceiling((double)booksCount / pageCapacity);
+            pageNumber = Math.Min(pageNumber, lastPage);
+
+
+
+            q = q.Skip(pageCapacity * (pageNumber - 1)).Take(pageCapacity);
+
+            var data = await q.Select(q => new BookBaseData(
+           q.Id,
+           q.Title,
+           q.Description,
+           q.Rating,
+           q.Price,
+           q.UrlImage,
+           q.Count,
+           q.PublicationYear
+           )).ToListAsync();
+
+
+            var result = new ListWithBooksBaseData(lastPage, pageNumber < lastPage, pageNumber > 1) { Books = data };
+            return result;
+        }
+
+        public async Task<List<Guid>> AddAuthorsFromBdToBook(Guid bookId, List<Guid> authors)
+        {
+            var book = await GetByIdAsync(bookId);
+
+            var authorsToAdd = await _context.Authors.Where(a => authors.Contains(a.Id)).ToListAsync();
+            if (authorsToAdd.Count() != authors.Count())
+            {
+                throw new ArgumentException("Не все авторы зарегистрированы в базе данных");
+            }
+            foreach (var author in authorsToAdd)
+            {
+                if (!book.Authors.Any(a => a.Id == author.Id))
+                {
+                    book.Authors.Add(author);
+                }
+            }
+            await _context.SaveChangesAsync();
+
+            return authors;
+
+        }
+
+        public async Task<List<Guid>> AddGenresFromBdToBook(Guid bookId, List<Guid> genres)
+        {
+            var book = await GetByIdAsync(bookId);
+
+            var genresToAdd = await _context.Genres.Where(a => genres.Contains(a.Id)).ToListAsync();
+            if (genresToAdd.Count() != genres.Count())
+            {
+                throw new ArgumentException("Не все жанры зарегистрированы в базе данных");
+            }
+            foreach (var genre in genresToAdd)
+            {
+                if (!book.Genres.Any(a => a.Id == genre.Id))
+                {
+                    book.Genres.Add(genre);
+                }
+            }
+            await _context.SaveChangesAsync();
+
+            return genres;
+
+        }
+
+
         public async Task<Book?> GetByIdAsync(Guid id)
         {
             var entity = await _context.Books.AsNoTracking()
                   .Include(a => a.Authors)
                   .Include(g => g.Genres)
+                  .Include(r => r.Reviews)
                   .AsSingleQuery()
                   .FirstOrDefaultAsync(b => b.Id == id);
 
@@ -129,7 +222,34 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return entity;
         }
-
+        public async Task<bool> AddAsyncWithExistsAuthorAndGenres(Book entity, List<Guid> authors, List<Guid> genres)
+        {
       
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var book = await AddAsync(entity);
+                    if (authors.Count > 0)
+                    {
+                        await AddAuthorsFromBdToBook(book.Id, authors);
+                    }
+                    if (genres.Count > 0)
+                    {
+                        await AddGenresFromBdToBook(book.Id, genres);
+                    }
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+            
+
+        }
+
     }
 }
