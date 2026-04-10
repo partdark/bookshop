@@ -30,6 +30,10 @@ namespace Application
             services.AddScoped<IOrderItemsRepository,OrderItemsRepository>();
             services.AddScoped<IBookService,BookService>();
             services.AddScoped<IAuthorService,AuthorService>();
+            services.AddScoped<IGenreService,GenreService>();
+            services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IReviewService, ReviewService>();
             return services;
         
         }

@@ -1,9 +1,6 @@
 ﻿using Domain.Entities;
 using Infrastructure.Dto;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 
 
@@ -35,16 +32,17 @@ namespace Infrastructure.Interfaces
 
     public interface IAuthorsRepository : IRepository<Author> { }
 
-    public interface IGenresRepository : IRepository<Genre> { }
+    public interface IGenresRepository : IRepository<Genre> { public Task<List<IdWithNAme>> GetIdsWithNamesAsync(); }
 
-    public interface ICustomersRepository : IRepository<Customer> { }
+    public interface ICustomersRepository : IRepository<Customer> { public Task<List<IdWithNAme>> GetIdsWithNamesAsync(); }
 
-    public interface IReviewsRepository : IRepository<Review> { }
+    public interface IReviewsRepository : IRepository<Review> { public Task<List<Review>> GetAll(); }
     public interface IOrdersRepository
     {
         Task<Order> AddAsync(Order entity);
         Task<bool> DeleteAsync(int id);
         Task<Order?> GetByIdAsync(int id);
+        Task<List<Order>> GetAllAsync();
         Task<List<int>> GetIdsAsync();
         Task<Order> UpdateAsync(Order entity);
     }
@@ -57,6 +55,8 @@ namespace Infrastructure.Interfaces
         Task<OrderItems?> GetAsync(int orderId, Guid bookId);
         Task<List<OrderItems>> GetByOrderIdAsync(int orderId);
         Task<OrderItems> UpdateAsync(OrderItems entity);
+
+        
     }
 
 

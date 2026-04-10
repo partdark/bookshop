@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Infrastructure.Data;
+using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -64,6 +65,11 @@ namespace Infrastructure.Repositories
             _context.Genres.Update(entity);
             await _context.SaveChangesAsync();
             return entity;
+        }
+
+        public async Task<List<IdWithNAme>> GetIdsWithNamesAsync()
+        {
+            return await _context.Genres.Select(g => new IdWithNAme (g.Id, g.Name)).ToListAsync();
         }
     }
 

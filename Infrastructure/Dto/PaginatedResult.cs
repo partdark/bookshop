@@ -13,6 +13,6 @@
     {
         public List<BookBaseData> Books { get; set; } = new();
     }
-
+    public record IdWithNAme(Guid Id, string Name);
 
 }

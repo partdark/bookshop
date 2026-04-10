@@ -19,7 +19,7 @@ namespace Domain.Entities
         public Guid CustomerId { get; set; }
 
         
-        public required Customer Customer { get; set; }
+        public Customer Customer { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
