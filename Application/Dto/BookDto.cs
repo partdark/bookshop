@@ -23,5 +23,8 @@ namespace Application.Dto
     public record AddBookWithAuthorsAndGenresDto(AddBookDto BookDto, List<Guid> AuthorsIds, List<Guid> GenresIds);
 
 
+    public record AddAuthorDto( string Name, int Year);
+
+    public record AuthorInfoDto(Guid Id, string Name, int Year, List<(Guid, string)> Books);
 
 }

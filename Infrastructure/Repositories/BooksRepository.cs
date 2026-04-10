@@ -208,10 +208,11 @@ namespace Infrastructure.Repositories
             return entity;
         }
 
-        public async Task<Book> AddAsync(Book entity)
+        public async Task<Book?> AddAsync(Book entity)
         {
             if (entity == null)
             {
+                
                 throw new ArgumentNullException($"{nameof(entity)}");
             }
             if (await GetByIdAsync(entity.Id) != null)

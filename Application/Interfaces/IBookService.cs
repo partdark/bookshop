@@ -10,7 +10,7 @@ namespace Application.Interfaces
         public Task<AddBookDto?> PatchBook(Guid id, JsonPatchDocument<AddBookDto> patchBook);
         public Task<BookResponseDto> UpdateBook(BookResponseDto bookResponse);
         public Task<bool> DeleteAsync(Guid id);
-        Task<Guid> AddBook(AddBookDto bookDto);
+        Task<Guid?> AddBook(AddBookDto bookDto);
         BookResponseDto? ConvertToDto(Book book);
         Task<List<Guid>> GetBookSIds();
         Task<BookResponseDto?> GetById(Guid id);

@@ -1,10 +1,17 @@
-﻿namespace Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Domain.Entities
 {
     public class Customer
     {
         public Guid Id { get; set;  } = Guid.NewGuid();
 
+        [Required]
         public string Name { get; set; } = string.Empty;
+
+        [Required]
+        public string PasswordHash { get; set; } = string.Empty;
+        [Required]
         public string Mail { get; set; } = string.Empty;
 
         public string Phone {  get; set; }   = string.Empty;

@@ -58,7 +58,7 @@ namespace Application.Services
             }
             return null;
         }
-        public async Task<Guid> AddBook(AddBookDto bookDto)
+        public async Task<Guid?> AddBook(AddBookDto bookDto)
         {
             var book = await _booksRepository.AddAsync(new Book
             {

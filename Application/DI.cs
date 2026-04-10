@@ -29,6 +29,7 @@ namespace Application
             services.AddScoped<IReviewsRepository,ReviewsRepository>();
             services.AddScoped<IOrderItemsRepository,OrderItemsRepository>();
             services.AddScoped<IBookService,BookService>();
+            services.AddScoped<IAuthorService,AuthorService>();
             return services;
         
         }
