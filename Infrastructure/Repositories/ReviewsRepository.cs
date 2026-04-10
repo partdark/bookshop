@@ -66,6 +66,11 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return entity;
         }
+
+        public async Task<List<Review>> GetAll()
+        {
+            return await _context.Reviews.ToListAsync();
+        }
     }
 }
 

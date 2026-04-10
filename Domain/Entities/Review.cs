@@ -9,9 +9,9 @@
         public string ReviewText { get; set; } = string.Empty;
 
         public Guid BookId { get; set; }
-        public Book Book { get; set; }
+        public required Book Book { get; set; }
         public Guid CustomerId { get; set; }
 
-        public Customer Customer { get; set; }
+        public required Customer Customer { get; set; }
     }
 }

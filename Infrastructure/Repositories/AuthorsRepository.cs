@@ -17,7 +17,10 @@ namespace Infrastructure.Repositories
 
         public async Task<Author?> GetByIdAsync(Guid id)
         {
-            var author = await _context.Authors.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
+            var author = await _context.Authors.AsNoTracking()
+                .Include(b => b.Books)
+                .AsSingleQuery()
+                .FirstOrDefaultAsync(a => a.Id == id);
             return author;
         }
 

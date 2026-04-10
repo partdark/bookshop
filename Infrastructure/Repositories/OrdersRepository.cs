@@ -46,6 +46,11 @@ namespace Infrastructure.Repositories
             return await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
         }
 
+        public async Task<List<Order>> GetAllAsync()
+        {
+            return await _context.Orders.AsNoTracking().ToListAsync();
+        }
+
 
         public async Task<List<int>> GetIdsAsync()
         {

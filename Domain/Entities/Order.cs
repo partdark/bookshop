@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Domain.Entities
 {
 
     public enum OrderStatus
@@ -16,6 +18,7 @@
 
         public Guid CustomerId { get; set; }
 
+        
         public Customer Customer { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;

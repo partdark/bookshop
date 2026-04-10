@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Infrastructure.Data;
+using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -53,9 +54,15 @@ namespace Infrastructure.Repositories
             return entity;
         }
 
-        public  async   Task<List<Guid>> GetIdsAsync()
+        public async Task<List<Guid>> GetIdsAsync()
         {
             return await _context.Customers.AsNoTracking().Select(b => b.Id).ToListAsync();
+        }
+
+        public async Task<List<IdWithNAme>> GetIdsWithNamesAsync()
+        {
+            return await _context.Customers.AsNoTracking().Select(b => new IdWithNAme ( b.Id, b.Name )).ToListAsync();
+           
         }
 
         public async Task<Customer> UpdateAsync(Customer entity)
