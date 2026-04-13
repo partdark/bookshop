@@ -1,20 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities
 {
-    public class Customer
+    public class Customer : IdentityUser<Guid>
     {
-        public Guid Id { get; set;  } = Guid.NewGuid();
+     //   public Guid Id { get; set;  } = Guid.NewGuid();
 
-        [Required]
-        public string Name { get; set; } = string.Empty;
+       
+      //  public string Name { get; set; } = string.Empty;
 
-        [Required]
-        public string PasswordHash { get; set; } = string.Empty;
-        [Required]
-        public string Mail { get; set; } = string.Empty;
+        
+     //   public string PasswordHash { get; set; } = string.Empty;
+        
+     //   public string Mail { get; set; } = string.Empty;
 
-        public string Phone {  get; set; }   = string.Empty;
+      //  public string Phone {  get; set; }   = string.Empty;
 
         public DateOnly DateOfBirth { get; set; } = new DateOnly(1900,1,1);
 
@@ -22,5 +23,7 @@ namespace Domain.Entities
         public ICollection<Order> Orders = null!;
 
         public ICollection<Review> Reviews= null!;
+
+        public ICollection<CartItem> CartItems { get; set; } = null!;
     }
 }

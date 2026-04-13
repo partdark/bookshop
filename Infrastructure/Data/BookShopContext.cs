@@ -1,4 +1,6 @@
 ﻿using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,7 @@ using System.Text;
 
 namespace Infrastructure.Data
 {
-    public class BookShopContext : DbContext
+    public class BookShopContext : IdentityDbContext< Customer, IdentityRole<Guid> , Guid>
     {
 
         public BookShopContext(DbContextOptions options) : base(options)
@@ -18,7 +20,7 @@ namespace Infrastructure.Data
         public DbSet<Book> Books { get; set; }
         public DbSet<Author> Authors { get; set; }
 
-        public DbSet<Customer> Customers { get; set; }
+      //  public DbSet<Customer> Customers { get; set; }
 
         public DbSet<Genre> Genres { get; set; }
 
@@ -27,6 +29,8 @@ namespace Infrastructure.Data
         public DbSet<Review> Reviews { get; set; }
 
         public DbSet<OrderItems> OrderItems { get; set; }
+
+        public DbSet<CartItem> CartItems { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,42 +54,60 @@ namespace Infrastructure.Data
                 e.HasMany(a => a.Books).WithMany(b => b.Authors);
             });
 
-            modelBuilder.Entity<Customer>(e => {
-            e.ToTable("Customers");
-                e.HasKey(k => k.Id);
-                e.HasMany(o => o.Orders).WithOne(c => c.Customer);               
+            //modelBuilder.Entity<Customer>(e =>
+            //{
+            //    e.ToTable("Customers");
+            //    e.HasKey(k => k.Id);
+            //    e.HasIndex(c => c.Mail).IsUnique();
+            //    e.HasIndex(c => c.Name).IsUnique();
+            //    e.HasMany(o => o.Orders).WithOne(c => c.Customer);
 
-            });
+            //});
 
-            modelBuilder.Entity<Genre>(e => {
+            modelBuilder.Entity<Genre>(e =>
+            {
                 e.ToTable("Genre");
                 e.HasKey(k => k.Id);
                 e.HasMany(b => b.Books).WithMany(g => g.Genres);
 
             });
-            modelBuilder.Entity<Order>(e => {
-            e.ToTable("Orders");
+            modelBuilder.Entity<Order>(e =>
+            {
+                e.ToTable("Orders");
                 e.HasKey(k => k.Id);
                 e.Property(p => p.Id).ValueGeneratedOnAdd();
                 e.HasMany(oi => oi.Items).WithOne(o => o.Order);
+                e.HasOne(c => c.Customer).WithMany(o => o.Orders).HasForeignKey(c => c.CustomerId);
 
 
             });
 
-            modelBuilder.Entity<Review>(e => {
-            e.ToTable("Reviews");
+            modelBuilder.Entity<Review>(e =>
+            {
+                e.ToTable("Reviews");
                 e.HasKey(k => k.Id);
                 e.HasOne(b => b.Book).WithMany(r => r.Reviews);
                 e.HasOne(c => c.Customer).WithMany(r => r.Reviews);
+                e.HasIndex(r => new { r.CustomerId, r.BookId }).IsUnique();
 
             });
 
-            modelBuilder.Entity<OrderItems>(e => {
-            e.ToTable("OrderItems");
+            modelBuilder.Entity<OrderItems>(e =>
+            {
+                e.ToTable("OrderItems");
                 e.HasKey(i => new { i.BookId, i.OrderId });
                 e.HasOne(o => o.Order).WithMany(i => i.Items);
                 e.HasOne(b => b.Book);
             });
+            modelBuilder.Entity<CartItem>(e => {
+                e.ToTable($"CartItems");
+                e.HasKey(c => c.Id);
+                e.HasOne(c => c.Customer).WithMany(u => u.CartItems);
+                e.HasOne(c => c.Book).WithMany().HasForeignKey(c => c.BookId);
+                e.HasIndex(c => new { c.CustomerId, c.BookId }).IsUnique();
+
+            });
+                        
         }
     }
 

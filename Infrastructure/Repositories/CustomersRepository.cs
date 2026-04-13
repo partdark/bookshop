@@ -2,6 +2,7 @@
 using Infrastructure.Data;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,9 +13,11 @@ namespace Infrastructure.Repositories
     public class CustomersRepository : ICustomersRepository
     {
         private readonly BookShopContext _context;
-        public CustomersRepository(BookShopContext context)
+        private readonly UserManager<Customer> _userManager;
+        public CustomersRepository(BookShopContext context, UserManager<Customer> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
         public async Task<Customer> AddAsync(Customer entity)
         {
@@ -26,7 +29,13 @@ namespace Infrastructure.Repositories
             {
                 throw new InvalidOperationException($"Customer with ID{entity.Id} exists");
             }
-            _context.Customers.Add(entity);
+            var roleResult = await _userManager.CreateAsync(entity, "User");
+            if (!roleResult.Succeeded)
+            {
+                throw new OperationCanceledException($"Не удалось применить роль для {entity.Id} {entity.UserName}");
+            }
+
+            _context.Users.Add(entity);
             await _context.SaveChangesAsync();
             return entity;
         }
@@ -38,14 +47,14 @@ namespace Infrastructure.Repositories
             {
                 return false;
             }
-            _context.Customers.Remove(entity);
+            _context.Users.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<Customer?> GetByIdAsync(Guid id)
         {
-            var entity = await _context.Customers.AsNoTracking()
+            var entity = await _context.Users.AsNoTracking()
                   .Include(o => o.Orders)
                   .Include(r => r.Reviews)
                   .AsSingleQuery()
@@ -56,12 +65,12 @@ namespace Infrastructure.Repositories
 
         public async Task<List<Guid>> GetIdsAsync()
         {
-            return await _context.Customers.AsNoTracking().Select(b => b.Id).ToListAsync();
+            return await _context.Users.AsNoTracking().Select(b => b.Id).ToListAsync();
         }
 
         public async Task<List<IdWithNAme>> GetIdsWithNamesAsync()
         {
-            return await _context.Customers.AsNoTracking().Select(b => new IdWithNAme ( b.Id, b.Name )).ToListAsync();
+            return await _context.Users.AsNoTracking().Select(b => new IdWithNAme ( b.Id, b.UserName )).ToListAsync();
            
         }
 

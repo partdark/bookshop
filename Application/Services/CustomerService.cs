@@ -23,9 +23,9 @@ namespace Application.Services
         {
             var customer = new Customer
             {
-                Name = customerDto.Name,
-                Mail = customerDto.Mail,
-                Phone = customerDto.Phone,
+                UserName = customerDto.Name,
+                Email = customerDto.Mail,
+                PhoneNumber = customerDto.Phone,
                 DateOfBirth = customerDto.DateOfBirth,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(customerDto.Password)
             };
@@ -51,7 +51,7 @@ namespace Application.Services
             {
                 return null;
             }
-            return new CustomerResponseDto(customer.Id, customer.Name, customer.Mail, customer.Phone, customer.DateOfBirth);
+            return new CustomerResponseDto(customer.Id, customer.UserName, customer.Email, customer.PhoneNumber, customer.DateOfBirth);
         }
 
         public async Task<CustomerResponseDto?> Update(Guid id, UpdateCustomerDto customerDto)
@@ -62,9 +62,9 @@ namespace Application.Services
                 return null;
             }
 
-            customer.Name = customerDto.Name;
-            customer.Mail = customerDto.Mail;
-            customer.Phone = customerDto.Phone;
+            customer.UserName = customerDto.Name;
+            customer.Email = customerDto.Mail;
+            customer.PhoneNumber = customerDto.Phone;
             customer.DateOfBirth = customerDto.DateOfBirth;
             
             var updatedCustomer = await _customersRepository.UpdateAsync(customer);
@@ -72,7 +72,7 @@ namespace Application.Services
             {
                 return null;
             }
-            return new CustomerResponseDto(customer.Id, customer.Name, customer.Mail, customer.Phone, customer.DateOfBirth);
+            return new CustomerResponseDto(customer.Id, customer.UserName, customer.Email, customer.PhoneNumber, customer.DateOfBirth);
         }
 
        

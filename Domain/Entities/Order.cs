@@ -5,7 +5,6 @@ namespace Domain.Entities
 
     public enum OrderStatus
     {
-        Cart,
         Placed,
         Shipped,
         Delivered,
@@ -25,7 +24,7 @@ namespace Domain.Entities
 
         public decimal TotalPrice { get; set; }
 
-        public OrderStatus Status { get; set; }  = OrderStatus.Cart;
+        public OrderStatus Status { get; set; }  = OrderStatus.Placed;
 
         public ICollection<OrderItems> Items = null!;
 

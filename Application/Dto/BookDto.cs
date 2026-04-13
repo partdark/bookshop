@@ -44,4 +44,6 @@ namespace Application.Dto
     public record AddReviewDto(int Rating, string ReviewText, Guid BookId, Guid CustomerId);
 
     public record UpdateReviewDto(Guid Id, int Rating, string ReviewText);
-}
+
+    public record CartItemDto(BookResponseDto Book, int Quantity);
+    }

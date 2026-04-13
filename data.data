@@ -1,49 +1,59 @@
-┌─────────────────────────────┐        ┌─────────────────────────────┐
-│           Authors           │        │            Books            │
-├─────────────────────────────┤        ├─────────────────────────────┤
-│ Id          UUID  PK        │        │ Id             UUID  PK     │
-│ Name        TEXT            │        │ Title          TEXT         │
-│ Year        INT             │        │ Description    TEXT         │
-└─────────────────────────────┘        │ Rating         FLOAT        │
-             │                         │ Price          DECIMAL      │
-             │  M:M (join table)       │ UrlImage       TEXT         │
-             └──────────────────────── │ Count          INT          │
-                                       │ PublicationYear INT         │
-┌─────────────────────────────┐        └─────────────────────────────┘
+┌─────────────────────────────┐        ┌──────────────────────────────┐
+│           Authors           │        │             Books            │
+├─────────────────────────────┤        ├──────────────────────────────┤
+│ Id          UUID  PK        │        │ Id              UUID  PK     │
+│ Name        TEXT            │        │ Title           TEXT         │
+│ Year        INT             │        │ Description     TEXT         │
+└─────────────────────────────┘        │ Rating          FLOAT        │
+             │                         │ Price           DECIMAL      │
+             │  M:M (join table)       │ UrlImage        TEXT         │
+             └──────────────────────── │ Count           INT          │
+                                       │ PublicationYear INT          │
+┌─────────────────────────────┐        └──────────────────────────────┘
 │           Genres            │                    │           │
 ├─────────────────────────────┤                    │           │
 │ Id          UUID  PK        │  M:M (join table)  │           │ 1:M
 │ Name        TEXT            │────────────────────┘           │
 └─────────────────────────────┘                                ▼
-                                               ┌─────────────────────────────┐
-                                               │           Reviews           │
-┌─────────────────────────────┐                ├─────────────────────────────┤
-│          Customers          │                │ Id           UUID  PK       │
-├─────────────────────────────┤                │ Date         DATETIME       │
-│ Id          UUID  PK        │◄───────────────│ Rating       INT            │
-│ Mail        TEXT            │  M:1           │ ReviewText   TEXT           │
-│ Phone       TEXT            │                │ BookId       UUID  FK       │
-│ DateOfBirth DATE            │                │ CustomerId   UUID  FK       │
-└─────────────────────────────┘                └─────────────────────────────┘
+                                               ┌──────────────────────────────┐
+                                               │            Reviews           │
+┌─────────────────────────────┐                ├──────────────────────────────┤
+│          Customers          │                │ Id           UUID  PK        │
+├─────────────────────────────┤                │ Date         DATETIME        │
+│ Id          UUID  PK        │◄───────────────│ Rating       INT             │
+│ Name        TEXT            │  M:1           │ ReviewText   TEXT            │
+│ PasswordHash TEXT           │                │ BookId       UUID  FK        │
+│ Mail        TEXT            │                │ CustomerId   UUID  FK        │
+│ Phone       TEXT            │                └──────────────────────────────┘
+│ DateOfBirth DATE            │
+└─────────────────────────────┘
+             │                 \
+             │ 1:M              \ 1:M
+             ▼                  ▼
+┌─────────────────────────┐    ┌──────────────────────────────┐
+│          Orders         │    │           CartItems          │
+├─────────────────────────┤    ├──────────────────────────────┤
+│ Id          INT  PK     │    │ Id           INT   PK (auto) │
+│ CustomerId  UUID FK     │    │ CustomerId   UUID  FK        │
+│ CreatedDate DATETIME    │    │ BookId       UUID  FK        │
+│ TotalPrice  DECIMAL     │    │ Quantity     INT             │
+│ Status      INT (enum)  │    │ AddedAt      DATETIME        │
+│                    │    │                              │
+│             1 Placed    │    │ UNIQUE (CustomerId, BookId)  │
+│             2 Shipped   │    └──────────────────────────────┘
+│             3 Delivered │
+│             4 Cancelled │
+└─────────────────────────┘
              │
              │ 1:M
              ▼
-┌─────────────────────────────┐
-│           Orders            │  
-├─────────────────────────────┤
-│ Id          INT   PK (auto) │
-│ CustomerId  UUID  FK        │
-│ CreatedDate DATETIME        │
-│ TotalPrice  DECIMAL         │
-│ Status      INT (enum)      │
-└─────────────────────────────┘
-             │
-             │ 1:M
-             ▼
-┌─────────────────────────────┐
-│          OrderItems         │
-├─────────────────────────────┤
-│ BookId  UUID  FK → Books    │
-│ Count   INT                 │
-│ OrderId INT   FK → Orders   │
-└─────────────────────────────┘
+┌──────────────────────────────┐
+│           OrderItems         │
+├──────────────────────────────┤
+│ OrderId         INT  FK      │
+│ BookId          UUID FK      │
+│ Count           INT          │
+│ PriceAtPurchase DECIMAL      │
+│                              │
+│ PK (OrderId, BookId)         │
+└──────────────────────────────┘

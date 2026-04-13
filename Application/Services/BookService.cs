@@ -96,7 +96,7 @@ namespace Application.Services
                 book.PublicationYear,
                 book.Authors.Select(a => new AuthorResponseDto(a.Id, a.Name, a.Year)).ToList(),
                 book.Genres.Select(g => new GenreResponseDto(g.Id, g.Name)).ToList(),
-                book.Reviews.Select(r => new ReviewResponseDto(r.Id, r.Date, r.Rating, r.ReviewText, new CustomerResponseIdNameDto (r.Customer.Id, r.Customer.Name))).ToList()
+                book.Reviews.Select(r => new ReviewResponseDto(r.Id, r.Date, r.Rating, r.ReviewText, new CustomerResponseIdNameDto (r.Customer.Id, r.Customer.UserName))).ToList()
                 );
         }
 

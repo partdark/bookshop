@@ -63,7 +63,7 @@ namespace Application.Services
                 r.Date,
                 r.Rating,
                 r.ReviewText,
-                new CustomerResponseIdNameDto(r.Customer.Id, r.Customer.Name)
+                new CustomerResponseIdNameDto(r.Customer.Id, r.Customer.UserName)
             )).ToList();
         }
 
@@ -79,7 +79,7 @@ namespace Application.Services
                 review.Date,
                 review.Rating,
                 review.ReviewText,
-                new CustomerResponseIdNameDto(review.Customer.Id, review.Customer.Name)
+                new CustomerResponseIdNameDto(review.Customer.Id, review.Customer.UserName)
             );
         }
 
@@ -104,7 +104,7 @@ namespace Application.Services
                 updatedReview.Date,
                 updatedReview.Rating,
                 updatedReview.ReviewText,
-                new CustomerResponseIdNameDto(updatedReview.Customer.Id, updatedReview.Customer.Name)
+                new CustomerResponseIdNameDto(updatedReview.Customer.Id, updatedReview.Customer.UserName)
             );
         }
     }
