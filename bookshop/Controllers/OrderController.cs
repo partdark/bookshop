@@ -1,65 +1,54 @@
 using Application.Dto;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace bookshop.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api")]
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        public OrderController(IOrderService orderService) => _orderService = orderService;
 
-        public OrderController(IOrderService orderService)
-        {
-            _orderService = orderService;
-        }
-
-        [HttpGet("/orders")]
+        [Authorize(Roles = "Admin")]
+        [HttpGet("orders")]
         public async Task<ActionResult<List<OrderResponseDto>>> GetAll()
-        {
-            return Ok(await _orderService.GetAll());
-        }
+            => Ok(await _orderService.GetAll());
 
-        [HttpGet("/order/{id:int}")]
+        [HttpGet("order/{id:int}")]
         public async Task<ActionResult<OrderResponseDto>> GetById(int id)
         {
             var order = await _orderService.GetById(id);
-            if (order == null)
-            {
-                return NotFound();
-            }
-            return Ok(order);
+            return order == null ? NotFound() : Ok(order);
         }
 
-        [HttpPost("/order/add")]
+        [HttpGet("order/{id:int}/detail")]
+        public async Task<ActionResult<OrderDetailDto>> GetDetailedById(int id)
+        {
+            var order = await _orderService.GetDetailedById(id);
+            return order == null ? NotFound() : Ok(order);
+        }
+
+        [HttpPost("order/add")]
         public async Task<ActionResult<int>> Add([FromBody] AddOrderDto order)
         {
-            try
-            {
-                var id = await _orderService.Add(order);
-                return Ok(id);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            try { return Ok(await _orderService.Add(order)); }
+            catch (ArgumentException ex) { return BadRequest(ex.Message); }
         }
 
-        [HttpDelete("/order/delete/{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("order/{id:int}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
         {
-            var result = await _orderService.Delete(id);
-            if (result)
-            {
-                return Ok();
-            }
-            return NotFound();
+            var result = await _orderService.UpdateStatus(id, dto.Status);
+            return result ? Ok() : NotFound();
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("order/delete/{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+            => await _orderService.Delete(id) ? Ok() : NotFound();
     }
 }

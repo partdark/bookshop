@@ -19,32 +19,40 @@ namespace Infrastructure.Interfaces
 
     public interface IBooksRepository : IRepository<Book>
     {
-        public  Task<bool> AddAsyncWithExistsAuthorAndGenres(Book entity, List<Guid> authors, List<Guid> genres);
-        public  Task<List<Guid>> AddAuthorsFromBdToBook(Guid bookId, List<Guid> authors);
-
-
-
-        public  Task<List<Guid>> AddGenresFromBdToBook(Guid bookId, List<Guid> genres);
-        public Task<ListWithBooksBaseData> BooksBaseData(int pageCapacity = 20, int pageNumber = 1, string orderBy = "Title",
+        Task<bool> AddAsyncWithExistsAuthorAndGenres(Book entity, List<Guid> authors, List<Guid> genres);
+        Task<List<Guid>> AddAuthorsFromBdToBook(Guid bookId, List<Guid> authors);
+        Task<List<Guid>> AddGenresFromBdToBook(Guid bookId, List<Guid> genres);
+        Task<ListWithBooksBaseData> BooksBaseData(int pageCapacity = 20, int pageNumber = 1, string orderBy = "Title",
             bool notAscending = false, string? searchingWords = null);
-       public Task<PaginatedResult<Book>> TakeBookWithPagging(int pagesize = 20, int pageNumber = 1, string orderBy = "Title", bool ascending = true);
+        Task<PaginatedResult<Book>> TakeBookWithPagging(int pagesize = 20, int pageNumber = 1, string orderBy = "Title", bool ascending = true);
+        Task UpdateCountAsync(Guid id, int count);
     }
 
     public interface IAuthorsRepository : IRepository<Author> { }
 
     public interface IGenresRepository : IRepository<Genre> { public Task<List<IdWithNAme>> GetIdsWithNamesAsync(); }
 
-    public interface ICustomersRepository : IRepository<Customer> { public Task<List<IdWithNAme>> GetIdsWithNamesAsync(); }
+    public interface ICustomersRepository : IRepository<Customer>
+    {
+        public Task<List<IdWithNAme>> GetIdsWithNamesAsync();
+        new Task<Customer> AddAsync(Customer entity, string password);
+    }
 
-    public interface IReviewsRepository : IRepository<Review> { public Task<List<Review>> GetAll(); }
+    public interface IReviewsRepository : IRepository<Review>
+    {
+        Task<List<Review>> GetAll();
+        Task<Review?> GetByCustomerAndBookAsync(Guid customerId, Guid bookId);
+    }
     public interface IOrdersRepository
     {
         Task<Order> AddAsync(Order entity);
         Task<bool> DeleteAsync(int id);
         Task<Order?> GetByIdAsync(int id);
+        Task<Order?> GetDetailedByIdAsync(int id);
         Task<List<Order>> GetAllAsync();
         Task<List<int>> GetIdsAsync();
         Task<Order> UpdateAsync(Order entity);
+        Task<List<Order>> GetByCustomerIdAsync(Guid customerId);
     }
 
     

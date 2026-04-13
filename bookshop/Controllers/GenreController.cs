@@ -1,68 +1,45 @@
 using Application.Dto;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bookshop.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api")]
     public class GenreController : ControllerBase
     {
         private readonly IGenreService _genreService;
+        public GenreController(IGenreService genreService) => _genreService = genreService;
 
-        public GenreController(IGenreService genreService)
-        {
-            _genreService = genreService;
-        }
-
-        [HttpGet("/genres")]
+        [HttpGet("genres")]
         public async Task<ActionResult<List<GenreResponseDto>>> GetAll()
-        {
-            return Ok(await _genreService.GetAll());
-        }
+            => Ok(await _genreService.GetAll());
 
-        [HttpGet("/genre/{id:guid}")]
+        [HttpGet("genre/{id:guid}")]
         public async Task<ActionResult<GenreResponseDto>> GetById(Guid id)
         {
             var genre = await _genreService.GetById(id);
-            if (genre == null)
-            {
-                return NotFound();
-            }
-            return Ok(genre);
+            return genre == null ? NotFound() : Ok(genre);
         }
 
-        [HttpPost("/genre/add")]
+        [Authorize(Roles = "Admin")]
+        [HttpPost("genre/add")]
         public async Task<ActionResult<Guid>> Add([FromBody] AddGenreDto genre)
-        {
-            var id = await _genreService.Add(genre);
-            return Ok(id);
-        }
+            => Ok(await _genreService.Add(genre));
 
-        [HttpPut("/genre/update/{id:guid}")]
+        [Authorize(Roles = "Admin")]
+        [HttpPut("genre/update/{id:guid}")]
         public async Task<ActionResult<GenreResponseDto>> Update(Guid id, [FromBody] GenreResponseDto genre)
         {
-            if (id != genre.id)
-            {
-                return BadRequest("Id's do not match");
-            }
-            var updatedGenre = await _genreService.Update(genre);
-            if (updatedGenre == null)
-            {
-                return NotFound();
-            }
-            return Ok(updatedGenre);
+            if (id != genre.id) return BadRequest("Id's do not match");
+            var result = await _genreService.Update(genre);
+            return result == null ? NotFound() : Ok(result);
         }
 
-        [HttpDelete("/genre/delete/{id:guid}")]
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("genre/delete/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
-        {
-            var result = await _genreService.Delete(id);
-            if (result)
-            {
-                return Ok();
-            }
-            return NotFound();
-        }
+            => await _genreService.Delete(id) ? Ok() : NotFound();
     }
 }

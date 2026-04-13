@@ -43,12 +43,34 @@ namespace Infrastructure.Repositories
 
         public async Task<Order?> GetByIdAsync(int id)
         {
-            return await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
+            return await _context.Orders.AsNoTracking()
+                .Include(o => o.Items)
+                .FirstOrDefaultAsync(o => o.Id == id);
+        }
+
+        public async Task<Order?> GetDetailedByIdAsync(int id)
+        {
+            return await _context.Orders.AsNoTracking()
+                .Include(o => o.Customer)
+                .Include(o => o.Items)
+                    .ThenInclude(oi => oi.Book)
+                .FirstOrDefaultAsync(o => o.Id == id);
         }
 
         public async Task<List<Order>> GetAllAsync()
         {
-            return await _context.Orders.AsNoTracking().ToListAsync();
+            return await _context.Orders.AsNoTracking()
+                .Include(o => o.Items)
+                .ToListAsync();
+        }
+
+        public async Task<List<Order>> GetByCustomerIdAsync(Guid customerId)
+        {
+            return await _context.Orders.AsNoTracking()
+                .Include(o => o.Items)
+                .Where(o => o.CustomerId == customerId)
+                .OrderByDescending(o => o.CreatedDate)
+                .ToListAsync();
         }
 
 

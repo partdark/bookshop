@@ -19,10 +19,11 @@ namespace Infrastructure.Repositories
 
         public async Task<Review?> GetByIdAsync(Guid id)
         {
-            var review = _context.Reviews.AsNoTracking().FirstOrDefault(g => g.Id == id);
-            await _context.SaveChangesAsync();
-
-            return review;
+            return await _context.Reviews
+                .AsNoTracking()
+                .Include(r => r.Customer)
+                .Include(r => r.Book)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
 
         public async Task<List<Guid>> GetIdsAsync()
@@ -33,12 +34,8 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var review = await GetByIdAsync(id);
-
-            if (review == null)
-            {
-              return  false;
-            }
+            var review = await _context.Reviews.FirstOrDefaultAsync(r => r.Id == id);
+            if (review == null) return false;
             _context.Reviews.Remove(review);
             await _context.SaveChangesAsync();
             return true;
@@ -69,7 +66,18 @@ namespace Infrastructure.Repositories
 
         public async Task<List<Review>> GetAll()
         {
-            return await _context.Reviews.ToListAsync();
+            return await _context.Reviews
+                .AsNoTracking()
+                .Include(r => r.Customer)
+                .Include(r => r.Book)
+                .ToListAsync();
+        }
+
+        public async Task<Review?> GetByCustomerAndBookAsync(Guid customerId, Guid bookId)
+        {
+            return await _context.Reviews
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.CustomerId == customerId && r.BookId == bookId);
         }
     }
 }

@@ -13,5 +13,8 @@ namespace Application.Interfaces
         Task<OrderResponseDto?> GetById(int id);
         Task<int> Add(AddOrderDto order);
         Task<bool> Delete(int id);
+        Task<List<OrderResponseDto>> GetByCustomerId(Guid customerId);
+        Task<OrderDetailDto?> GetDetailedById(int id);
+        Task<bool> UpdateStatus(int id, string status);
     }
 }

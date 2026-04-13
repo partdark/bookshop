@@ -1,13 +1,14 @@
 using Application.Dto;
 using Application.Interfaces;
 using Infrastructure.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bookshop.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api")]
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
@@ -16,99 +17,56 @@ namespace bookshop.Controllers
             _bookService = bookService;
         }
 
-        [HttpGet("/test")]
-        public async Task<IActionResult> test()
-        {
-            return Ok();
-        }
-
-        [HttpGet("/GenerateGuid")]
-        public Guid GenerateGuid()
-        {
-            return Guid.NewGuid();
-        }
-
-        [HttpGet("/books")]
+        [HttpGet("books")]
         public async Task<ActionResult<List<Guid>>> GetBooksIds()
-        {
-            return await _bookService.GetBookSIds();
-        }
+            => await _bookService.GetBookSIds();
 
-        [HttpGet("/catalog/{id:guid}")]
+        [HttpGet("catalog/{id:guid}")]
         public async Task<ActionResult<BookResponseDto>> GetBookById([FromRoute] Guid id)
         {
-            var bookResponse = await _bookService.GetById(id);
-            if (bookResponse == null)
-            {
-                return NotFound();
-            }
-            return Ok(bookResponse);
+            var book = await _bookService.GetById(id);
+            return book == null ? NotFound() : Ok(book);
         }
 
+        [HttpGet("catalog")]
+        public async Task<ActionResult<ListWithBooksBaseData>> Catalog(
+            int pageCapacity = 20, int pageNumber = 1,
+            string orderBy = "Title", bool desc = false, string? titleContains = null)
+            => await _bookService.BookShowcase(pageCapacity, pageNumber, orderBy, desc, titleContains);
 
-        [HttpGet("/catalog")]
-        public async Task<ActionResult<ListWithBooksBaseData>> Catalog(int pageCapacity = 20, int pageNumber = 1, string orderBy = "Title",
-            bool desc = false, string? titleContains = null)
+        [Authorize(Roles = "Admin")]
+        [HttpPost("book/add")]
+        public async Task<ActionResult<Guid>> CreateBook([FromBody] AddBookDto bookDto)
         {
-            return await _bookService.BookShowcase(pageCapacity, pageNumber, orderBy, desc, titleContains);
+            var id = await _bookService.AddBook(bookDto);
+            return id != null ? Ok(id) : BadRequest();
         }
 
-        [HttpPost("/book/add")]
-        public async Task<ActionResult<Guid>> CeateBook([FromBody] AddBookDto bookDto)
-        {
-            var bookId = await _bookService.AddBook(bookDto);
+        [Authorize(Roles = "Admin")]
+        [HttpPost("book/createbookwithfullinfo")]
+        public async Task<ActionResult<Guid>> CreateBookWithAuthorsAndGenres([FromBody] AddBookWithAuthorsAndGenresDto dto)
+            => await _bookService.CreateBookWithIndicatingExistingAuthorsAndgenres(dto.BookDto, dto.AuthorsIds, dto.GenresIds);
 
-            if (bookId != null)
-            {
-                return Ok(bookId);
-            }
-            return BadRequest();
-        }
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("book/delete/{id:guid}")]
+        public async Task<IActionResult> DeleteBook([FromRoute] Guid id)
+            => await _bookService.DeleteAsync(id) ? Ok() : NotFound();
 
-        [HttpPost("/book/createbookwithfullinfo")]
-        public async Task<ActionResult<Guid>> CreateBookWithIndicatingExistingAuthorsAndgenres([FromBody] AddBookWithAuthorsAndGenresDto bookInfoDto)
-        {
-            var result = await _bookService.CreateBookWithIndicatingExistingAuthorsAndgenres(bookInfoDto.BookDto, bookInfoDto.AuthorsIds, bookInfoDto.GenresIds);
-            return result;
-        }
-
-        [HttpDelete("/book/delete/{Id:guid}")]
-        public async Task<IActionResult> DeleteBook([FromRoute] Guid Id)
-        {
-            var result = await _bookService.DeleteAsync(Id);
-            if (result)
-            {
-                return Ok();
-            }
-            return NotFound();
-        }
-
-        [HttpPut("/book/update/{id:guid}")]
+        [Authorize(Roles = "Admin")]
+        [HttpPut("book/update/{id:guid}")]
         public async Task<ActionResult<BookResponseDto>> UpdateBook([FromRoute] Guid id, [FromBody] BookResponseDto book)
         {
-            if (id != book.Id)
-            {
-                return BadRequest("Id не совпадают");
-            }
-
+            if (id != book.Id) return BadRequest("Id не совпадают");
             var result = await _bookService.UpdateBook(book);
-            if (result == null)
-            {
-                return NotFound();
-            }
-            return Ok(result);
+            return result == null ? NotFound() : Ok(result);
         }
-        [HttpPatch("/book/patch/{id:guid}")]
-        public async Task<ActionResult<AddBookDto>> PatchBook([FromRoute] Guid id, [FromBody] JsonPatchDocument<AddBookDto> book)
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("book/patch/{id:guid}")]
+        public async Task<ActionResult<AddBookDto>> PatchBook([FromRoute] Guid id, [FromBody] JsonPatchDocument<AddBookDto> patch)
         {
-            var patchedBook = await _bookService.PatchBook(id, book);
-            if (patchedBook == null)
-            {
-                return NotFound();
-            }
-            return Ok(patchedBook);
-
+            var result = await _bookService.PatchBook(id, patch);
+            return result == null ? NotFound() : Ok(result);
         }
-
     }
 }

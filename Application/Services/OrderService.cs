@@ -26,21 +26,35 @@ namespace Application.Services
             var orderItems = new List<OrderItems>();
             decimal totalPrice = 0;
 
+        
+            var books = new Dictionary<Guid, Book>();
             foreach (var itemDto in orderDto.Items)
             {
                 var book = await _booksRepository.GetByIdAsync(itemDto.BookId);
                 if (book == null)
-                {
-                    throw new ArgumentException($"Book with ID {itemDto.BookId} not found.");
-                }
+                    throw new ArgumentException($"Книга с ID {itemDto.BookId} не найдена.");
+                if (book.Count < itemDto.Count)
+                    throw new ArgumentException($"Недостаточно экземпляров книги «{book.Title}»: доступно {book.Count}, запрошено {itemDto.Count}.");
+                books[itemDto.BookId] = book;
+            }
+
+            foreach (var itemDto in orderDto.Items)
+            {
+                var book = books[itemDto.BookId];
                 orderItems.Add(new OrderItems
                 {
                     BookId = itemDto.BookId,
-                    Book = book, 
                     Count = itemDto.Count,
-                    PriceAtPurchase = book.Price 
+                    PriceAtPurchase = book.Price
                 });
                 totalPrice += book.Price * itemDto.Count;
+            }
+
+          
+            foreach (var itemDto in orderDto.Items)
+            {
+                var newCount = books[itemDto.BookId].Count - itemDto.Count;
+                await _booksRepository.UpdateCountAsync(itemDto.BookId, newCount);
             }
 
             var order = new Order
@@ -89,6 +103,52 @@ namespace Application.Services
                 order.Status.ToString(),
                 order.Items.Select(oi => new OrderItemDto(oi.BookId, oi.Count, oi.PriceAtPurchase)).ToList()
             );
+        }
+        public async Task<List<OrderResponseDto>> GetByCustomerId(Guid customerId)
+        {
+            var orders = await _ordersRepository.GetByCustomerIdAsync(customerId);
+            return orders.Select(o => new OrderResponseDto(
+                o.Id,
+                o.CustomerId,
+                o.CreatedDate,
+                o.TotalPrice,
+                o.Status.ToString(),
+                o.Items?.Select(oi => new OrderItemDto(oi.BookId, oi.Count, oi.PriceAtPurchase)).ToList() ?? new()
+            )).ToList();
+        }
+
+        public async Task<OrderDetailDto?> GetDetailedById(int id)
+        {
+            var order = await _ordersRepository.GetDetailedByIdAsync(id);
+            if (order == null) return null;
+
+            return new OrderDetailDto(
+                order.Id,
+                order.CustomerId,
+                order.Customer?.UserName ?? string.Empty,
+                order.Customer?.Email ?? string.Empty,
+                order.CreatedDate,
+                order.TotalPrice,
+                order.Status.ToString(),
+                order.Items?.Select(oi => new OrderItemDetailDto(
+                    oi.BookId,
+                    oi.Book?.Title ?? string.Empty,
+                    oi.Book?.UrlImage ?? string.Empty,
+                    oi.Count,
+                    oi.PriceAtPurchase,
+                    oi.PriceAtPurchase * oi.Count
+                )).ToList() ?? new()
+            );
+        }
+
+        public async Task<bool> UpdateStatus(int id, string status)
+        {
+            var order = await _ordersRepository.GetByIdAsync(id);
+            if (order == null) return false;
+            if (!Enum.TryParse<OrderStatus>(status, out var parsed)) return false;
+            order.Status = parsed;
+            await _ordersRepository.UpdateAsync(order);
+            return true;
         }
     }
 }

@@ -26,47 +26,46 @@ namespace Infrastructure.Repositories
         public async Task<ListWithBooksBaseData> BooksBaseData(int pageCapacity = 20, int pageNumber = 1, string orderBy = "Title",
             bool notAscending = false, string? searchingWords = null)
         {
-
-            var q = _context.Books.AsQueryable();
-
-            if (searchingWords != null)
-            {
-                q = q.Where(x => EF.Functions.Like(x.Title, $"%{searchingWords}%"));
-            }
-
-
-            if (string.IsNullOrEmpty(orderBy))
-            {
-                orderBy = "Title";
-            }
-            var orderType = notAscending ? "desc" : "asc";
-            q = q.OrderBy($"{orderBy}  {orderType}");
-
-            var booksCount = await _context.Books.CountAsync();
-
             if (pageCapacity < 1) pageCapacity = 20;
             if (pageNumber < 1) pageNumber = 1;
-            var lastPage = (int)Math.Ceiling((double)booksCount / pageCapacity);
+
+            var q = _context.Books
+                .AsNoTracking()
+                .Include(b => b.Authors)
+                .Include(b => b.Genres)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchingWords))
+                q = q.Where(x => EF.Functions.Like(x.Title, $"%{searchingWords}%"));
+
+            if (string.IsNullOrEmpty(orderBy))
+                orderBy = "Title";
+
+            var orderType = notAscending ? "desc" : "asc";
+            q = q.OrderBy($"{orderBy} {orderType}");
+
+            var totalCount = await q.CountAsync();
+
+            if (totalCount == 0)
+                return new ListWithBooksBaseData(0, 1, pageCapacity, false, false);
+
+            var lastPage = (int)Math.Ceiling((double)totalCount / pageCapacity);
             pageNumber = Math.Min(pageNumber, lastPage);
 
+            var data = await q
+                .Skip(pageCapacity * (pageNumber - 1))
+                .Take(pageCapacity)
+                .Select(b => new BookBaseData(
+                    b.Id, b.Title, b.Description, b.Rating,
+                    b.Price, b.UrlImage, b.Count, b.PublicationYear,
+                    b.Authors.Select(a => new BookAuthorData(a.Id, a.Name, a.Year)).ToList(),
+                    b.Genres.Select(g => new BookGenreData(g.Id, g.Name)).ToList()))
+                .ToListAsync();
 
-
-            q = q.Skip(pageCapacity * (pageNumber - 1)).Take(pageCapacity);
-
-            var data = await q.Select(q => new BookBaseData(
-           q.Id,
-           q.Title,
-           q.Description,
-           q.Rating,
-           q.Price,
-           q.UrlImage,
-           q.Count,
-           q.PublicationYear
-           )).ToListAsync();
-
-
-            var result = new ListWithBooksBaseData(lastPage, pageNumber < lastPage, pageNumber > 1) { Books = data };
-            return result;
+            return new ListWithBooksBaseData(totalCount, pageNumber, pageCapacity, pageNumber < lastPage, pageNumber > 1)
+            {
+                Books = data
+            };
         }
 
         public async Task<List<Guid>> AddAuthorsFromBdToBook(Guid bookId, List<Guid> authors)
@@ -120,6 +119,7 @@ namespace Infrastructure.Repositories
                   .Include(a => a.Authors)
                   .Include(g => g.Genres)
                   .Include(r => r.Reviews)
+                      .ThenInclude(r => r.Customer)
                   .AsSingleQuery()
                   .FirstOrDefaultAsync(b => b.Id == id);
 
@@ -201,11 +201,16 @@ namespace Infrastructure.Repositories
 
         public async Task<Book> UpdateAsync(Book entity)
         {
-
-
             _context.Update(entity);
             await _context.SaveChangesAsync();
             return entity;
+        }
+
+        public async Task UpdateCountAsync(Guid id, int count)
+        {
+            await _context.Books
+                .Where(b => b.Id == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, count));
         }
 
         public async Task<Book?> AddAsync(Book entity)

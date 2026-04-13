@@ -59,16 +59,15 @@ namespace Application.Services
         public async Task<OrderResponseDto?> CreateOrder(Guid customerId)
         {
             var order = await _cartRepository.CreateOrder(customerId);
-            if (order == null)
-            {
-                return null;
-            }
+            if (order == null) return null;
 
-            
-            var orderItemDtos = order.Items.Select(oi => new OrderItemDto(oi.BookId, oi.Count, oi.PriceAtPurchase)).ToList();
-            var orderResponseDto = new OrderResponseDto(order.Id, order.CustomerId, order.CreatedDate, order.TotalPrice, order.Status.ToString(), orderItemDtos);
+            var orderItemDtos = order.Items?
+                .Select(oi => new OrderItemDto(oi.BookId, oi.Count, oi.PriceAtPurchase))
+                .ToList() ?? new List<OrderItemDto>();
 
-            return orderResponseDto;
+            return new OrderResponseDto(
+                order.Id, order.CustomerId, order.CreatedDate,
+                order.TotalPrice, order.Status.ToString(), orderItemDtos);
         }
     }
 }

@@ -34,6 +34,18 @@ namespace Application.Services
             return await _authorsRepository.GetIdsAsync();
         }
 
+        public async Task<List<AuthorResponseDto>> GetAllAsync()
+        {
+            var ids = await _authorsRepository.GetIdsAsync();
+            var result = new List<AuthorResponseDto>();
+            foreach (var id in ids)
+            {
+                var a = await _authorsRepository.GetByIdAsync(id);
+                if (a != null) result.Add(new AuthorResponseDto(a.Id, a.Name, a.Year));
+            }
+            return result;
+        }
+
         public async Task<AuthorResponseDto?> AddAsync(AddAuthorDto author)
         {
             var authorToAdd = new Author() { Name = author.Name, Year = author.Year };

@@ -1,18 +1,24 @@
 ﻿namespace Infrastructure.Dto
 {
-
     public record PaginatedResult<T>(int TotalCount, int PageCount, int CurrentPage, bool HasNext, bool HasPrevious)
     {
         public List<T> Items { get; set; } = new();
     }
 
-    public record BookBaseData(Guid Id, string Title, string Description, 
-    float Rating, decimal Price, string UrlImage, int Count, int PublicationYear);
+    public record BookAuthorData(Guid Id, string Name, int Year);
+    public record BookGenreData(Guid Id, string Name);
 
-    public record ListWithBooksBaseData (int lastNumber, bool hasNext, bool hasPrevious)
+    public record BookBaseData(
+        Guid Id, string Title, string Description,
+        float Rating, decimal Price, string UrlImage,
+        int Count, int PublicationYear,
+        List<BookAuthorData> Authors,
+        List<BookGenreData> Genres);
+
+    public record ListWithBooksBaseData(int TotalCount, int PageNumber, int PageCapacity, bool HasNext, bool HasPrevious)
     {
         public List<BookBaseData> Books { get; set; } = new();
     }
-    public record IdWithNAme(Guid Id, string Name);
 
+    public record IdWithNAme(Guid Id, string Name);
 }
