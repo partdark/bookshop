@@ -36,6 +36,8 @@ namespace Application
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<ICartService, CartService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRatingService, RatingService>();
             return services;
         
         }

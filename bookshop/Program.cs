@@ -1,80 +1,168 @@
 using Application;
+using Application.Interfaces;
 using Application.Services;
 using Domain.Entities;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(e => e.Value?.Errors.Count > 0)
+            .ToDictionary(
+                e => e.Key,
+                e => e.Value!.Errors.Select(x => x.ErrorMessage).ToArray()
+            );
+        return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(new { errors });
+    };
+});
 
-builder.Services.AddSwaggerGen();
-//builder.Services.AddDbContext<BookShopContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "Bookshop API", Version = "v1" });
+    c.InferSecuritySchemes();
+});
+
+
 builder.Services.Addifrastructure(builder.Configuration);
 
-builder.Services.AddIdentity<Customer, IdentityRole<Guid>>(
-    options => {
-        options.SignIn.RequireConfirmedAccount = false;
-        options.Password.RequireDigit = false;
-        options.Password.RequiredLength = 4;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = false;
-        }
-    ).AddEntityFrameworkStores<BookShopContext>().AddDefaultTokenProviders();
+
+builder.Services.AddIdentity<Customer, IdentityRole<Guid>>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 4;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+}).AddEntityFrameworkStores<BookShopContext>().AddDefaultTokenProviders();
 
 
+var jwtKey = builder.Configuration["Jwt:Key"]!;
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddHostedService<RatingRecalculationStartupService>();
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "http://frontend:80")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+
+builder.Services.AddRateLimiter(options =>
+{
+   
+    options.AddFixedWindowLimiter("auth", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+    });
+
+   
+    options.AddFixedWindowLimiter("api", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 200;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 5;
+    });
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 var app = builder.Build();
 
+
 using (var scope = app.Services.CreateScope())
 {
-  //  var context = scope.ServiceProvider.GetRequiredService<BookShopContext>();
-  //  context.Database.Migrate();
-  var services = scope.ServiceProvider;
+    var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<BookShopContext>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var userManager = services.GetRequiredService<UserManager<Customer>>();
 
-       await context.Database.MigrateAsync();
+        await context.Database.MigrateAsync();
 
-        var roles = new[] { "Admin", "user" };
-        foreach (var role in roles)
-        {
-            var roleExist = await roleManager.RoleExistsAsync(role);
-            if (!roleExist)
-            {
+        foreach (var role in new[] { "Admin", "user" })
+            if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole<Guid>(role));
-            }
+
+      
+        var adminEmail = builder.Configuration["AdminSeed:Email"] ?? "admin@bookshop.com";
+        var adminPassword = builder.Configuration["AdminSeed:Password"] ?? "Admin1234";
+        if (await userManager.FindByEmailAsync(adminEmail) == null)
+        {
+            var admin = new Customer
+            {
+                UserName = "Admin",
+                Email = adminEmail,
+                NormalizedEmail = adminEmail.ToUpper(),
+                NormalizedUserName = "ADMIN",
+                DateOfBirth = new DateOnly(1990, 1, 1),
+            };
+            var result = await userManager.CreateAsync(admin, adminPassword);
+            if (result.Succeeded)
+                await userManager.AddToRoleAsync(admin, "Admin");
         }
 
-    }
-    catch (Exception ex)
+        await DbSeeder.SeedAsync(context);
+    }    catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        services.GetRequiredService<ILogger<Program>>()
+                .LogError(ex, "An error occurred while seeding the database.");
     }
 }
-
-
-
-// Configure the HTTP request pipeline.
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Bookshop API v1"));
     app.UseDeveloperExceptionPage();
 }
-//app.UseHttpsRedirection();
 
+app.UseCors("AllowFrontend");
+app.UseRateLimiter();
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

@@ -1,70 +1,52 @@
 using Application.Dto;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bookshop.Controllers
 {
-
     [ApiController]
-    [Route("[controller]")]
+    [Route("api")]
     public class AuthorController : ControllerBase
     {
         private readonly IAuthorService _authorService;
+        public AuthorController(IAuthorService authorService) => _authorService = authorService;
 
-        public AuthorController(IAuthorService authorService)
-        {
-            _authorService = authorService;
-        }
-
-
-        [HttpGet("/author/{id:guid}")]
-        public async Task<ActionResult<AuthorInfoDto>> GetByIdAsync(Guid id)
+        [HttpGet("author/{id:guid}")]
+        public async Task<ActionResult<AuthorInfoDto>> GetById(Guid id)
         {
             var result = await _authorService.GetByIdAsync(id);
-            if (result == null) { return NotFound(); }
-            return Ok(result);
+            return result == null ? NotFound() : Ok(result);
         }
 
-        [HttpGet("/authors")]
-        public async Task<ActionResult<List<Guid>>> GetAuthorsIds()
-        {
-            var result = await _authorService.GetIdsAsync();
-            return Ok(result);
-        }
+        [HttpGet("authors")]
+        public async Task<ActionResult<List<Guid>>> GetIds()
+            => Ok(await _authorService.GetIdsAsync());
 
-        [HttpPut("/author/add")]
+        [HttpGet("authors/all")]
+        public async Task<ActionResult<List<AuthorResponseDto>>> GetAll()
+            => Ok(await _authorService.GetAllAsync());
 
-        public async Task<ActionResult<AuthorResponseDto>> AddAuthorAsync(AddAuthorDto author)
+        [Authorize(Roles = "Admin")]
+        [HttpPut("author/add")]
+        public async Task<ActionResult<AuthorResponseDto>> Add(AddAuthorDto author)
         {
             var result = await _authorService.AddAsync(author);
-            if (result == null) { return BadRequest(); }
-            return Ok(result);
+            return result == null ? BadRequest() : Ok(result);
         }
 
-        [HttpPost("/author/update/{id:guid}")]
-        public async Task<ActionResult<AuthorResponseDto>> UpdateAuthorAync([FromRoute] Guid id, [FromBody] AuthorResponseDto author)
+        [Authorize(Roles = "Admin")]
+        [HttpPost("author/update/{id:guid}")]
+        public async Task<ActionResult<AuthorResponseDto>> Update([FromRoute] Guid id, [FromBody] AuthorResponseDto author)
         {
-            if (id != author.Id)
-            {
-                return BadRequest("Id не совпадают");
-            }
+            if (id != author.Id) return BadRequest("Id не совпадают");
             var result = await _authorService.UpdateAsync(author);
-
-            if (result == null) { return BadRequest(); }
-            ;
-            return Ok(result);
+            return result == null ? BadRequest() : Ok(result);
         }
 
-        [HttpDelete("/author/delete/{id:guid}")]
-        public async Task<IActionResult> DeleteAuthorAsync(Guid id)
-        {
-            var result = await _authorService.DeleteAsync(id);
-            if (result)
-            {
-                return Ok();
-            }
-            return NotFound();
-
-        }
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("author/delete/{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id)
+            => await _authorService.DeleteAsync(id) ? Ok() : NotFound();
     }
 }

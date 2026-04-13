@@ -5,9 +5,9 @@ services:
       POSTGRES_DB: bookshopdb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_SHARED_BUFFERS: 100MB     
+      POSTGRES_SHARED_BUFFERS: 100MB
       POSTGRES_EFFECTIVE_CACHE_SIZE: 150MB
-      POSTGRES_WORK_MEM: 16MB   
+      POSTGRES_WORK_MEM: 16MB
     ports:
       - "5435:5432"
     volumes:
@@ -18,8 +18,36 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "UserID=postgres;Host=postgres;port=5432;database=bookshopdb;Password=postgres"
+      Jwt__Key: "bookshop-super-secret-jwt-key-32chars!!"
+      Jwt__Issuer: "bookshop-api"
+      Jwt__Audience: "bookshop-client"
+      Jwt__ExpiresInMinutes: "1440"
+      AdminSeed__Email: "admin@bookshop.com"
+      AdminSeed__Password: "Admin1234"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: on-failure
+
 volumes:
   bookshopdb_data:
-
-
-  

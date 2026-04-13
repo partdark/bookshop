@@ -15,44 +15,52 @@ namespace Application.Services
         private readonly IReviewsRepository _reviewsRepository;
         private readonly IBooksRepository _booksRepository;
         private readonly ICustomersRepository _customersRepository;
+        private readonly IRatingService _ratingService;
 
-        public ReviewService(IReviewsRepository reviewsRepository, IBooksRepository booksRepository, ICustomersRepository customersRepository)
+        public ReviewService(IReviewsRepository reviewsRepository, IBooksRepository booksRepository,
+            ICustomersRepository customersRepository, IRatingService ratingService)
         {
             _reviewsRepository = reviewsRepository;
             _booksRepository = booksRepository;
             _customersRepository = customersRepository;
+            _ratingService = ratingService;
         }
 
         public async Task<Guid> Add(AddReviewDto reviewDto)
         {
             var book = await _booksRepository.GetByIdAsync(reviewDto.BookId);
             if (book == null)
-            {
                 throw new ArgumentException($"Book with ID {reviewDto.BookId} not found.");
-            }
 
             var customer = await _customersRepository.GetByIdAsync(reviewDto.CustomerId);
             if (customer == null)
-            {
                 throw new ArgumentException($"Customer with ID {reviewDto.CustomerId} not found.");
-            }
+
+            // Один пользователь — один отзыв на книгу
+            var existing = await _reviewsRepository.GetByCustomerAndBookAsync(reviewDto.CustomerId, reviewDto.BookId);
+            if (existing != null)
+                throw new ArgumentException("Вы уже оставляли отзыв на эту книгу.");
 
             var review = new Review
             {
                 Rating = reviewDto.Rating,
                 ReviewText = reviewDto.ReviewText,
                 BookId = reviewDto.BookId,
-                Book = book, 
                 CustomerId = reviewDto.CustomerId,
-                Customer = customer 
             };
             await _reviewsRepository.AddAsync(review);
+            await _ratingService.RecalculateAsync(review.BookId);
             return review.Id;
         }
 
         public async Task<bool> Delete(Guid id)
         {
-            return await _reviewsRepository.DeleteAsync(id);
+            var review = await _reviewsRepository.GetByIdAsync(id);
+            var bookId = review?.BookId;
+            var result = await _reviewsRepository.DeleteAsync(id);
+            if (result && bookId.HasValue)
+                await _ratingService.RecalculateAsync(bookId.Value);
+            return result;
         }
 
         public async Task<List<ReviewResponseDto>> GetAll()
@@ -95,10 +103,9 @@ namespace Application.Services
             existingReview.ReviewText = reviewDto.ReviewText;
 
             var updatedReview = await _reviewsRepository.UpdateAsync(existingReview);
-            if(updatedReview == null)
-            {
-                return null;
-            }
+            if (updatedReview == null) return null;
+
+            await _ratingService.RecalculateAsync(updatedReview.BookId);
             return new ReviewResponseDto(
                 updatedReview.Id,
                 updatedReview.Date,

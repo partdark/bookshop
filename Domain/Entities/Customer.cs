@@ -19,6 +19,8 @@ namespace Domain.Entities
 
         public DateOnly DateOfBirth { get; set; } = new DateOnly(1900,1,1);
 
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiry { get; set; }
 
         public ICollection<Order> Orders = null!;
 

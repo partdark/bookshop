@@ -21,15 +21,17 @@ namespace Application.Services
 
         public async Task<Guid> Add(AddCustomerDto customerDto)
         {
+            // Регистрация через UserManager — он сам хэширует пароль через PBKDF2
             var customer = new Customer
             {
                 UserName = customerDto.Name,
                 Email = customerDto.Mail,
+                NormalizedEmail = customerDto.Mail.ToUpper(),
+                NormalizedUserName = customerDto.Name.ToUpper(),
                 PhoneNumber = customerDto.Phone,
                 DateOfBirth = customerDto.DateOfBirth,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(customerDto.Password)
             };
-            await _customersRepository.AddAsync(customer);
+            await _customersRepository.AddAsync(customer, customerDto.Password);
             return customer.Id;
         }
 
