@@ -24,7 +24,7 @@ namespace Infrastructure.Repositories
 
 
         public async Task<ListWithBooksBaseData> BooksBaseData(int pageCapacity = 20, int pageNumber = 1, string orderBy = "Title",
-            bool notAscending = false, string? searchingWords = null)
+            bool notAscending = false, string? searchingWords = null, bool countMoreThenZero = true)
         {
             if (pageCapacity < 1) pageCapacity = 20;
             if (pageNumber < 1) pageNumber = 1;
@@ -34,6 +34,11 @@ namespace Infrastructure.Repositories
                 .Include(b => b.Authors)
                 .Include(b => b.Genres)
                 .AsQueryable();
+
+            if (countMoreThenZero)
+            {
+                q = q.Where(c => c.Count > 0);
+            }
 
             if (!string.IsNullOrWhiteSpace(searchingWords))
                 q = q.Where(x => EF.Functions.Like(x.Title, $"%{searchingWords}%"));
@@ -139,7 +144,7 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public async Task<PaginatedResult<Book>> TakeBookWithPagging(int pageSize = 20, int pageNumber = 1, string orderBy = "title", bool ascending = true)
+        public async Task<Dtos<Book>> TakeBookWithPagging(int pageSize = 20, int pageNumber = 1, string orderBy = "title", bool ascending = true)
         {
 
             if (pageSize <= 0) pageSize = 20;
@@ -163,7 +168,7 @@ namespace Infrastructure.Repositories
             var pages = (int)Math.Ceiling((double)total / pageSize);
             if (pages == 0)
             {
-                return new PaginatedResult<Book>(default, default, default, default, default)
+                return new Dtos<Book>(default, default, default, default, default)
                 {
                     Items = new List<Book>(),
                     TotalCount = 0,
@@ -180,7 +185,7 @@ namespace Infrastructure.Repositories
 
             var items = await q.ToListAsync();
 
-            return new PaginatedResult<Book>(default, default, default, default, default)
+            return new Dtos<Book>(default, default, default, default, default)
             {
                 Items = items,
                 TotalCount = total,
@@ -211,6 +216,20 @@ namespace Infrastructure.Repositories
             await _context.Books
                 .Where(b => b.Id == id)
                 .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, count));
+        }
+
+        public async Task PatchScalarFieldsAsync(Guid id, string title, string description, float rating, decimal price, string urlImage, int count, int publicationYear)
+        {
+            await _context.Books
+                .Where(b => b.Id == id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(b => b.Title, title)
+                    .SetProperty(b => b.Description, description)
+                    .SetProperty(b => b.Rating, rating)
+                    .SetProperty(b => b.Price, price)
+                    .SetProperty(b => b.UrlImage, urlImage)
+                    .SetProperty(b => b.Count, count)
+                    .SetProperty(b => b.PublicationYear, publicationYear));
         }
 
         public async Task<Book?> AddAsync(Book entity)

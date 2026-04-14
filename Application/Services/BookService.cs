@@ -101,9 +101,9 @@ namespace Application.Services
         }
 
         public async Task<ListWithBooksBaseData> BookShowcase(int pageCapacity, int pageNumber, string orderBy,
-            bool notAscending, string? searchingWords)
+            bool notAscending, string? searchingWords , bool countMoreThenZero)
         {
-            return await _booksRepository.BooksBaseData(pageCapacity, pageNumber, orderBy, notAscending, searchingWords);
+            return await _booksRepository.BooksBaseData(pageCapacity, pageNumber, orderBy, notAscending, searchingWords, countMoreThenZero);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -140,35 +140,18 @@ namespace Application.Services
         public async Task<AddBookDto?> PatchBook(Guid id, JsonPatchDocument<AddBookDto> patchBook)
         {
             var book = await _booksRepository.GetByIdAsync(id);
-            if (book == null)
-            {
-                return null;
-            }
-            var bookDto = new AddBookDto(
-                     book.Title,
-                     book.Description,
-                     book.Rating,
-                     book.Price,
-                     book.UrlImage,
-                      book.Count,
-                     book.PublicationYear
-                    );
+            if (book == null) return null;
 
+            var bookDto = new AddBookDto(
+                book.Title, book.Description, book.Rating,
+                book.Price, book.UrlImage, book.Count, book.PublicationYear);
 
             patchBook.ApplyTo(bookDto);
 
+            await _booksRepository.PatchScalarFieldsAsync(id,
+                bookDto.Title, bookDto.Description, bookDto.Rating,
+                bookDto.Price, bookDto.UrlImage, bookDto.Count, bookDto.PublicationYear);
 
-
-            book.Title = bookDto.Title;
-            book.Description = bookDto.Description;
-            book.Rating = bookDto.Rating;
-            book.Price = bookDto.Price;
-            book.UrlImage = bookDto.UrlImage;
-            book.Count = bookDto.Count;
-            book.PublicationYear = bookDto.PublicationYear;
-
-
-            await _booksRepository.UpdateAsync(book);
             return bookDto;
         }
     }

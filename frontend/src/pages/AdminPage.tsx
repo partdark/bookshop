@@ -57,7 +57,7 @@ export default function AdminPage() {
   )
 }
 
-// ── Orders Tab ────────────────────────────────────────────────────────────────
+
 function OrdersTab({ showToast }: { showToast: (m: string, ok?: boolean) => void }) {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -129,7 +129,7 @@ function OrdersTab({ showToast }: { showToast: (m: string, ok?: boolean) => void
   )
 }
 
-// ── Books Tab ─────────────────────────────────────────────────────────────────
+
 function BooksTab({ showToast }: { showToast: (m: string, ok?: boolean) => void }) {
   const [books, setBooks] = useState<BookListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -137,7 +137,7 @@ function BooksTab({ showToast }: { showToast: (m: string, ok?: boolean) => void 
   const [saving, setSaving] = useState<string | null>(null)
 
   useEffect(() => {
-    getCatalog({ pageCapacity: 100 })
+    getCatalog({ pageCapacity: 100, countMoreThemZero: false })
       .then(r => setBooks(r.books))
       .catch(() => showToast('Ошибка загрузки книг', false))
       .finally(() => setLoading(false))
@@ -216,7 +216,7 @@ function BooksTab({ showToast }: { showToast: (m: string, ok?: boolean) => void 
   )
 }
 
-// ── Add Book Tab ──────────────────────────────────────────────────────────────
+
 function AddBookTab({ showToast }: { showToast: (m: string, ok?: boolean) => void }) {
   const [genres, setGenres] = useState<{ id: string; name: string }[]>([])
   const [authors, setAuthors] = useState<{ id: string; name: string; year: number }[]>([])
@@ -325,7 +325,7 @@ function AddBookTab({ showToast }: { showToast: (m: string, ok?: boolean) => voi
   )
 }
 
-// ── Add Author Tab ────────────────────────────────────────────────────────────
+
 function AddAuthorTab({ showToast }: { showToast: (m: string, ok?: boolean) => void }) {
   const [name, setName] = useState('')
   const [year, setYear] = useState('')
@@ -364,7 +364,7 @@ function AddAuthorTab({ showToast }: { showToast: (m: string, ok?: boolean) => v
   )
 }
 
-// ── Add Genre Tab ─────────────────────────────────────────────────────────────
+
 function AddGenreTab({ showToast }: { showToast: (m: string, ok?: boolean) => void }) {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -397,7 +397,7 @@ function AddGenreTab({ showToast }: { showToast: (m: string, ok?: boolean) => vo
   )
 }
 
-// ── Add Admin Tab ─────────────────────────────────────────────────────────────
+
 function AddAdminTab({ showToast }: { showToast: (m: string, ok?: boolean) => void }) {
   const [form, setForm] = useState({
     name: '', email: '', password: '', phone: '', dateOfBirth: '',
@@ -446,7 +446,7 @@ function AddAdminTab({ showToast }: { showToast: (m: string, ok?: boolean) => vo
   )
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
+
 const s: Record<string, React.CSSProperties> = {
   page: { maxWidth: 1100, margin: '0 auto', padding: '32px 24px' },
   title: { fontSize: 28, fontWeight: 700, color: '#111827', marginBottom: 32 },

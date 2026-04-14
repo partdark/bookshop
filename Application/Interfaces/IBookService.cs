@@ -16,7 +16,7 @@ namespace Application.Interfaces
         Task<BookResponseDto?> GetById(Guid id);
 
         public Task<ListWithBooksBaseData> BookShowcase(int pageCapacity, int pageNumber, string orderBy,
-           bool notAscending, string? searchingWords);
+           bool notAscending, string? searchingWords, bool countMoreThenZero);
 
         public Task<Guid> CreateBookWithIndicatingExistingAuthorsAndgenres(AddBookDto bookDto,
            List<Guid> authorDto, List<Guid> genres);

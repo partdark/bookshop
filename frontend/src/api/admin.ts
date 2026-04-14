@@ -1,14 +1,14 @@
 import api from './client'
 import type { Order, AuthResponse } from '../types'
 
-// Orders
+
 export const getAllOrders = () =>
   api.get<Order[]>('/orders').then((r) => r.data)
 
 export const updateOrderStatus = (id: number, status: string) =>
   api.patch(`/order/${id}/status`, { status })
 
-// Books
+
 export const addBook = (data: {
   title: string
   description: string
@@ -34,7 +34,9 @@ export const addBook = (data: {
   }).then((r) => r.data)
 
 export const updateBookCount = (id: string, count: number) =>
-  api.patch(`/book/patch/${id}`, [{ op: 'replace', path: '/count', value: count }])
+  api.patch(`/book/patch/${id}`, [{ op: 'replace', path: '/count', value: count }], {
+    headers: { 'Content-Type': 'application/json-patch+json' }
+  })
 
 export const deleteBook = (id: string) =>
   api.delete(`/book/delete/${id}`)
@@ -42,7 +44,7 @@ export const deleteBook = (id: string) =>
 export const deleteReview = (id: string) =>
   api.delete(`/review/delete/${id}`)
 
-// Admin registration
+
 export const registerAdmin = (data: {
   name: string
   email: string

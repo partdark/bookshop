@@ -31,8 +31,8 @@ namespace bookshop.Controllers
         [HttpGet("catalog")]
         public async Task<ActionResult<ListWithBooksBaseData>> Catalog(
             int pageCapacity = 20, int pageNumber = 1,
-            string orderBy = "Title", bool desc = false, string? titleContains = null)
-            => await _bookService.BookShowcase(pageCapacity, pageNumber, orderBy, desc, titleContains);
+            string orderBy = "Title", bool desc = false, string? titleContains = null, bool countMoreThemZero = true)
+            => await _bookService.BookShowcase(pageCapacity, pageNumber, orderBy, desc, titleContains, countMoreThemZero);
 
         [Authorize(Roles = "Admin")]
         [HttpPost("book/add")]
