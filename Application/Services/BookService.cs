@@ -57,7 +57,7 @@ namespace Application.Services
         {
             var key = $"book:{id}";
             var book = await _cache.GetOrCreateAsync(key,
-                async token =>
+                async t =>
                 {
                     var bookEntity = await _booksRepository.GetByIdAsync(id);
                     if (bookEntity == null)
@@ -127,7 +127,12 @@ namespace Application.Services
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            return await _booksRepository.DeleteAsync(id);
+            var result =  await _booksRepository.DeleteAsync(id);
+            if (result)
+            {
+               await _cache.RemoveAsync($"book:{id}");
+            }
+            return result;
         }
 
         public async Task<BookResponseDto?> UpdateBook(BookResponseDto bookResponse)

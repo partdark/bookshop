@@ -1,16 +1,19 @@
 using Application.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Application.Services
 {
     public class RatingService : IRatingService
     {
         private readonly BookShopContext _context;
+        private readonly HybridCache _cache;
 
-        public RatingService(BookShopContext context)
+        public RatingService(BookShopContext context, HybridCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         public async Task RecalculateAsync(Guid bookId)
@@ -26,6 +29,7 @@ namespace Application.Services
                 : 0f;
 
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync($"book:{bookId}"); 
         }
 
         public async Task RecalculateAllAsync()
@@ -42,6 +46,10 @@ namespace Application.Services
             }
 
             await _context.SaveChangesAsync();
+            foreach (var book in books)
+            {
+                await _cache.RemoveAsync($"book:{book.Id}");
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ using Application.Dto;
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Caching.Hybrid;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,14 +17,16 @@ namespace Application.Services
         private readonly IBooksRepository _booksRepository;
         private readonly ICustomersRepository _customersRepository;
         private readonly IRatingService _ratingService;
+        private readonly HybridCache _cache;
 
         public ReviewService(IReviewsRepository reviewsRepository, IBooksRepository booksRepository,
-            ICustomersRepository customersRepository, IRatingService ratingService)
+            ICustomersRepository customersRepository, IRatingService ratingService, HybridCache hybridCache )
         {
             _reviewsRepository = reviewsRepository;
             _booksRepository = booksRepository;
             _customersRepository = customersRepository;
             _ratingService = ratingService;
+            _cache = hybridCache;
         }
 
         public async Task<Guid> Add(AddReviewDto reviewDto)
@@ -48,7 +51,6 @@ namespace Application.Services
                 BookId = reviewDto.BookId,
                 CustomerId = reviewDto.CustomerId,
             };
-            await _reviewsRepository.AddAsync(review);
             await _ratingService.RecalculateAsync(review.BookId);
             return review.Id;
         }
@@ -59,7 +61,11 @@ namespace Application.Services
             var bookId = review?.BookId;
             var result = await _reviewsRepository.DeleteAsync(id);
             if (result && bookId.HasValue)
+            {
                 await _ratingService.RecalculateAsync(bookId.Value);
+
+
+            }
             return result;
         }
 
