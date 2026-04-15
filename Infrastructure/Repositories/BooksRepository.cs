@@ -3,7 +3,7 @@ using Infrastructure.Data;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Caching.Hybrid;
 using System.Linq.Dynamic.Core;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -13,11 +13,13 @@ namespace Infrastructure.Repositories
     public partial class BooksRepository : IBooksRepository
     {
         private readonly BookShopContext _context;
+        private readonly HybridCache _cache;
 
 
-        public BooksRepository(BookShopContext context)
+        public BooksRepository(BookShopContext context, HybridCache hybridCache)
         {
             _context = context;
+            _cache = hybridCache;
         }
 
 
@@ -213,9 +215,14 @@ namespace Infrastructure.Repositories
 
         public async Task UpdateCountAsync(Guid id, int count)
         {
-            await _context.Books
-                .Where(b => b.Id == id)
-                .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, count));
+            var result = await _context.Books
+                   .Where(b => b.Id == id)
+                   .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, count));
+            if (result == 1)
+            {
+                var key = $"book:{id}";
+                await _cache.RemoveAsync(key);
+            }  
         }
 
         public async Task PatchScalarFieldsAsync(Guid id, string title, string description, float rating, decimal price, string urlImage, int count, int publicationYear)
@@ -236,7 +243,7 @@ namespace Infrastructure.Repositories
         {
             if (entity == null)
             {
-                
+
                 throw new ArgumentNullException($"{nameof(entity)}");
             }
             if (await GetByIdAsync(entity.Id) != null)
@@ -249,7 +256,7 @@ namespace Infrastructure.Repositories
         }
         public async Task<bool> AddAsyncWithExistsAuthorAndGenres(Book entity, List<Guid> authors, List<Guid> genres)
         {
-      
+
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
@@ -272,7 +279,7 @@ namespace Infrastructure.Repositories
                     throw;
                 }
             }
-            
+
 
         }
 

@@ -2,14 +2,20 @@
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Infrastructure.Repositories
 {
     public class CartRepository : ICartRepository
     {
         private readonly BookShopContext _context;
+        private readonly HybridCache _cache;
 
-        public CartRepository(BookShopContext context) => _context = context;
+        public CartRepository(BookShopContext context, HybridCache cache)
+        {
+            _context = context;
+            _cache = cache;
+        }
 
         public async Task<List<CartItem>?> GetCartItemsByCustomerId(Guid customerId)
         {
@@ -31,7 +37,7 @@ namespace Infrastructure.Repositories
             if (!await CustomerExists(customerId))
                 throw new KeyNotFoundException($"Customer {customerId} not found");
 
-            // Если уже есть — увеличиваем количество
+         
             var existing = await _context.CartItems
                 .FirstOrDefaultAsync(c => c.CustomerId == customerId && c.BookId == bookId);
 
@@ -44,7 +50,7 @@ namespace Infrastructure.Repositories
 
             await _context.CartItems.AddAsync(new CartItem
             {
-                CustomerId = customerId,   // ← был баг: не задавался
+                CustomerId = customerId,  
                 BookId = bookId,
                 Quantity = count,
                 AddedAt = DateTime.UtcNow,
@@ -106,7 +112,7 @@ namespace Infrastructure.Repositories
                     .Where(b => bookIds.Contains(b.Id))
                     .ToDictionaryAsync(b => b.Id, b => b);
 
-                // Проверяем наличие
+               
                 foreach (var item in cartItems)
                 {
                     if (!books.TryGetValue(item.BookId, out var book))
@@ -134,16 +140,16 @@ namespace Infrastructure.Repositories
                 order.TotalPrice = orderItems.Sum(i => i.PriceAtPurchase * i.Count);
                 await _context.OrderItems.AddRangeAsync(orderItems);
 
-                // Списываем количество
                 foreach (var item in cartItems)
                 {
                     var newCount = books[item.BookId].Count - item.Quantity;
                     await _context.Books
                         .Where(b => b.Id == item.BookId)
                         .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, newCount));
+                    await _cache.RemoveAsync($"book:{item.BookId}");
                 }
 
-                // Очищаем корзину
+            
                 await _context.CartItems
                     .Where(c => c.CustomerId == customerId)
                     .ExecuteDeleteAsync();
