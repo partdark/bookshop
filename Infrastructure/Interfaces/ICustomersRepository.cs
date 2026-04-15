@@ -9,7 +9,7 @@ namespace Infrastructure.Interfaces
     public interface ICustomersRepository : IRepository<Customer>
     {
         public Task<List<IdWithNAme>> GetIdsWithNamesAsync();
-        new Task<Customer> AddAsync(Customer entity, string password);
+        public Task<Customer> AddAsync(Customer entity, string password);
     }
 
 

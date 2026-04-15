@@ -36,7 +36,7 @@ namespace Application.Services
             if (customer == null)
                 throw new ArgumentException($"Customer with ID {reviewDto.CustomerId} not found.");
 
-            // Один пользователь — один отзыв на книгу
+           
             var existing = await _reviewsRepository.GetByCustomerAndBookAsync(reviewDto.CustomerId, reviewDto.BookId);
             if (existing != null)
                 throw new ArgumentException("Вы уже оставляли отзыв на эту книгу.");

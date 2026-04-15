@@ -1,3 +1,4 @@
+
 ┌─────────────────────────────┐        ┌──────────────────────────────┐
 │           Authors           │        │             Books            │
 ├─────────────────────────────┤        ├──────────────────────────────┤
@@ -17,19 +18,31 @@
 └─────────────────────────────┘                                ▼
                                                ┌──────────────────────────────┐
                                                │            Reviews           │
-┌─────────────────────────────┐                ├──────────────────────────────┤
-│          Customers          │                │ Id           UUID  PK        │
-├─────────────────────────────┤                │ Date         DATETIME        │
-│ Id          UUID  PK        │◄───────────────│ Rating       INT             │
-│ Name        TEXT            │  M:1           │ ReviewText   TEXT            │
-│ PasswordHash TEXT           │                │ BookId       UUID  FK        │
-│ Mail        TEXT            │                │ CustomerId   UUID  FK        │
-│ Phone       TEXT            │                └──────────────────────────────┘
-│ DateOfBirth DATE            │
-└─────────────────────────────┘
-             │                 \
-             │ 1:M              \ 1:M
-             ▼                  ▼
+┌───────────────────────────────┐              ├──────────────────────────────┤      ┌──────────────────────────────┐
+│      AspNetUsers (Customer)   │              │ Id           UUID  PK        │      │          AspNetRoles         │
+├───────────────────────────────┤              │ Date         DATETIME        │      ├──────────────────────────────┤
+│ Id          UUID  PK          │◄─────────────│ Rating       INT             │      │ Id            UUID PK        │
+│ UserName      NVARCHAR(256)   │  M:1         │ ReviewText   TEXT            │      │ Name          NVARCHAR(256)  │
+│ NormalizedUserName NVARCHAR   │              │ BookId       UUID  FK        │      │ NormalizedName NVARCHAR(256) │
+│ Email        NVARCHAR(256)    │              │ CustomerId   UUID  FK        │      │ ConcurrencyStamp NVARCHAR    │
+│ NormalizedEmail NVARCHAR(256) │              └──────────────────────────────┘      └──────────────────────────────┘
+│ EmailConfirmed  BIT           │                                                           
+│ PasswordHash    NVARCHAR(MAX) │                                                    ┌──────────────────────────────┐
+│ SecurityStamp   NVARCHAR(MAX) │                                                    │        AspNetUserRoles       │
+│ ConcurrencyStamp NVARCHAR(MAX)│                                                    ├──────────────────────────────┤
+│ PhoneNumber     NVARCHAR(MAX) │                                                    │ UserId        UUID PK, FK    │
+│ PhoneNumberConfirmed BIT      │                                                    │ RoleId        UUID PK, FK    │
+│ TwoFactorEnabled BIT          │                                                    └──────────────────────────────┘
+│ LockoutEnd      DATETIMEOFFSET│
+│ LockoutEnabled  BIT           │                                                    ┌──────────────────────────────┐
+│ AccessFailedCount INT         │                                                    │      AspNetUserClaims        │
+│ DateOfBirth     DATE          │                                                    ├──────────────────────────────┤
+│ RefreshToken    NVARCHAR(MAX) │                                                    │ Id            INT PK (auto)  │
+│ RefreshTokenExpiry DATETIME2  │                                                    │ UserId        UUID FK        │
+└───────────────────────────────┘                                                    │ ClaimType     NVARCHAR(MAX)  │
+             │                 \                                                     │ ClaimValue    NVARCHAR(MAX)  │
+             │ 1:M              \ 1:M                                                └──────────────────────────────┘
+             ▼                   ▼
 ┌─────────────────────────┐    ┌──────────────────────────────┐
 │          Orders         │    │           CartItems          │
 ├─────────────────────────┤    ├──────────────────────────────┤
@@ -38,7 +51,7 @@
 │ CreatedDate DATETIME    │    │ BookId       UUID  FK        │
 │ TotalPrice  DECIMAL     │    │ Quantity     INT             │
 │ Status      INT (enum)  │    │ AddedAt      DATETIME        │
-│                    │    │                              │
+│                         │    │                              │
 │             1 Placed    │    │ UNIQUE (CustomerId, BookId)  │
 │             2 Shipped   │    └──────────────────────────────┘
 │             3 Delivered │
@@ -57,3 +70,31 @@
 │                              │
 │ PK (OrderId, BookId)         │
 └──────────────────────────────┘
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

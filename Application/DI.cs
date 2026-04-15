@@ -19,7 +19,7 @@ namespace Application
    public static  class DI {
         public static IServiceCollection Addifrastructure(this IServiceCollection services, IConfiguration configuration) 
         {
-            services.AddDbContext<BookShopContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContextPool<BookShopContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IBooksRepository,BooksRepository>();
             services.AddScoped<IAuthorsRepository, AuthorsRepository>();
@@ -38,6 +38,7 @@ namespace Application
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRatingService, RatingService>();
+            services.AddHybridCache();
             return services;
         
         }

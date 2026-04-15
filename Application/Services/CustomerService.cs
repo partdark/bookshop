@@ -21,7 +21,7 @@ namespace Application.Services
 
         public async Task<Guid> Add(AddCustomerDto customerDto)
         {
-            // Регистрация через UserManager — он сам хэширует пароль через PBKDF2
+            
             var customer = new Customer
             {
                 UserName = customerDto.Name,

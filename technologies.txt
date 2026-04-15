@@ -1,0 +1,25 @@
+This project uses the following technologies:
+
+## Backend
+
+- **Framework:** ASP.NET Core
+- **Language:** C#
+- **Object-Relational Mapper (ORM):** Entity Framework Core
+- **Authentication:** ASP.NET Core Identity
+- **Containerization:** Docker
+
+## Frontend
+
+- **Framework:** React
+- **Language:** TypeScript
+- **Build Tool:** Vite
+- **Web Server:** Nginx
+- **Containerization:** Docker
+
+## Database
+
+- **Database:** PostgreSQL
+
+## DevOps
+
+- **Container Orchestration:** Docker Compose

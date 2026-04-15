@@ -20,7 +20,9 @@ namespace Infrastructure.Data
         public DbSet<Book> Books { get; set; }
         public DbSet<Author> Authors { get; set; }
 
-      //  public DbSet<Customer> Customers { get; set; }
+
+        //Используется core identity user
+        //  public DbSet<Customer> Customers { get; set; }
 
         public DbSet<Genre> Genres { get; set; }
 
@@ -54,6 +56,7 @@ namespace Infrastructure.Data
                 e.HasMany(a => a.Books).WithMany(b => b.Authors);
             });
 
+            //Используется core identity user
             //modelBuilder.Entity<Customer>(e =>
             //{
             //    e.ToTable("Customers");
@@ -113,3 +116,4 @@ namespace Infrastructure.Data
 
 
 }
+

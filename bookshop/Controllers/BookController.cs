@@ -12,6 +12,7 @@ namespace bookshop.Controllers
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
+        
         public BookController(IBookService bookService)
         {
             _bookService = bookService;
@@ -31,8 +32,8 @@ namespace bookshop.Controllers
         [HttpGet("catalog")]
         public async Task<ActionResult<ListWithBooksBaseData>> Catalog(
             int pageCapacity = 20, int pageNumber = 1,
-            string orderBy = "Title", bool desc = false, string? titleContains = null, bool countMoreThemZero = true)
-            => await _bookService.BookShowcase(pageCapacity, pageNumber, orderBy, desc, titleContains, countMoreThemZero);
+            string orderBy = "Title", bool desc = false, string? titleContains = null, bool countMoreThenZero = true)
+            => await _bookService.BookShowcase(pageCapacity, pageNumber, orderBy, desc, titleContains, countMoreThenZero);
 
         [Authorize(Roles = "Admin")]
         [HttpPost("book/add")]

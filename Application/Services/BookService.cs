@@ -4,6 +4,7 @@ using Domain.Entities;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.Caching.Hybrid;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
@@ -17,10 +18,13 @@ namespace Application.Services
     public class BookService : IBookService
     {
         private readonly IBooksRepository _booksRepository;
+        private readonly HybridCache  _cache;
+        
 
-        public BookService(IBooksRepository booksRepository)
+        public BookService(IBooksRepository booksRepository, HybridCache hybridCache)
         {
             _booksRepository = booksRepository;
+            _cache = hybridCache;
         }
 
         public async Task<Guid> CreateBookWithIndicatingExistingAuthorsAndgenres(AddBookDto bookDto,
@@ -51,12 +55,27 @@ namespace Application.Services
 
         public async Task<BookResponseDto?> GetById(Guid id)
         {
-            var book = await _booksRepository.GetByIdAsync(id);
-            if (book != null)
-            {
-                return ConvertToDto(book);
-            }
-            return null;
+            var key = $"book:{id}";
+            var book = await _cache.GetOrCreateAsync(key,
+                async token =>
+                {
+                    var bookEntity = await _booksRepository.GetByIdAsync(id);
+                    if (bookEntity == null)
+                    {
+                        return null;
+                    }
+                    return ConvertToDto(bookEntity);
+                },
+                new HybridCacheEntryOptions
+                {
+                    Expiration = TimeSpan.FromMinutes(3),
+                    LocalCacheExpiration = TimeSpan.FromMinutes(3)
+                }
+                );
+
+            return book;
+            
+            
         }
         public async Task<Guid?> AddBook(AddBookDto bookDto)
         {
@@ -133,6 +152,7 @@ namespace Application.Services
                 Reviews = (ICollection<Review>)bookResponse.Reviews,
             };
             await _booksRepository.UpdateAsync(book);
+            await _cache.RemoveAsync($"book:{bookResponse.Id}");
             return bookResponse;
 
         }
@@ -152,6 +172,7 @@ namespace Application.Services
                 bookDto.Title, bookDto.Description, bookDto.Rating,
                 bookDto.Price, bookDto.UrlImage, bookDto.Count, bookDto.PublicationYear);
 
+            await _cache.RemoveAsync($"book:{id}");
             return bookDto;
         }
     }
