@@ -2,6 +2,7 @@ using Application.Dto;
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
 using System;
 using System.Collections.Generic;
@@ -16,12 +17,14 @@ namespace Application.Services
         private readonly IOrdersRepository _ordersRepository;
         private readonly IBooksRepository _booksRepository;
         private readonly HybridCache _cache;
+       
 
-        public OrderService(IOrdersRepository ordersRepository, IBooksRepository booksRepository, HybridCache hybridCache)
+        public OrderService(IOrdersRepository ordersRepository, IBooksRepository booksRepository,  HybridCache hybridCache)
         {
             _ordersRepository = ordersRepository;
             _booksRepository = booksRepository;
             _cache = hybridCache;
+        
         }
 
         public async Task<int> Add(AddOrderDto orderDto)
@@ -60,7 +63,6 @@ namespace Application.Services
             {
                 var newCount = books[itemDto.BookId].Count - itemDto.Count;
                 await _booksRepository.UpdateCountAsync(itemDto.BookId, newCount);
-              await  _cache.RemoveAsync($"book:{itemDto.BookId}");
             }
 
             var order = new Order
@@ -73,6 +75,7 @@ namespace Application.Services
             };
 
             await _ordersRepository.AddAsync(order);
+            await _cache.RemoveAsync("mainpage");
             return order.Id;
         }
 

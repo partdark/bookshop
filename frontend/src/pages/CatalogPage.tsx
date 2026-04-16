@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { getCatalog, getGenres } from '../api/books'
 import { addToCart } from '../api/cart'
 import { useAuthStore } from '../store/authStore'
@@ -16,19 +17,33 @@ const SORT_OPTIONS = [
 export default function CatalogPage() {
   const { user, isAuthenticated } = useAuthStore()
   const { increment } = useCartStore()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const page = parseInt(searchParams.get('page') ?? '1', 10)
+  const search = searchParams.get('search') ?? ''
+  const orderBy = searchParams.get('orderBy') ?? 'Title'
+  const desc = searchParams.get('desc') === 'true'
+  const selectedGenre = searchParams.get('genre') ?? ''
+
   const [books, setBooks] = useState<BookListItem[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [orderBy, setOrderBy] = useState('Title')
-  const [desc, setDesc] = useState(false)
+  const [searchInput, setSearchInput] = useState(search)
   const [genres, setGenres] = useState<{ id: string; name: string }[]>([])
-  const [selectedGenre, setSelectedGenre] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)  // 7: индикатор
   const [cartMsg, setCartMsg] = useState<string | null>(null)
   const pageSize = 20
+
+  const setParam = (updates: Record<string, string | null>) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      for (const [k, v] of Object.entries(updates)) {
+        if (v === null || v === '') next.delete(k)
+        else next.set(k, v)
+      }
+      return next
+    }, { replace: true })
+  }
 
   useEffect(() => {
     getGenres().then(setGenres).catch(() => {})
@@ -62,17 +77,12 @@ export default function CatalogPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    setPage(1)
-    setSearch(searchInput)
+    setParam({ search: searchInput || null, page: null })
   }
 
   const handleReset = () => {
-    setSearch('')
     setSearchInput('')
-    setSelectedGenre('')
-    setOrderBy('Title')
-    setDesc(false)
-    setPage(1)
+    setSearchParams({}, { replace: true })
   }
 
   // 7: индикатор загрузки на кнопке
@@ -114,7 +124,7 @@ export default function CatalogPage() {
       <div style={styles.filters}>
         <select
           value={selectedGenre}
-          onChange={(e) => { setSelectedGenre(e.target.value); setPage(1) }}
+          onChange={(e) => setParam({ genre: e.target.value || null, page: null })}
           style={styles.select}
         >
           <option value="">Все жанры</option>
@@ -123,7 +133,7 @@ export default function CatalogPage() {
 
         <select
           value={orderBy}
-          onChange={(e) => { setOrderBy(e.target.value); setPage(1) }}
+          onChange={(e) => setParam({ orderBy: e.target.value, page: null })}
           style={styles.select}
         >
           {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -131,7 +141,7 @@ export default function CatalogPage() {
 
         <button
           style={styles.dirBtn}
-          onClick={() => { setDesc(d => !d); setPage(1) }}
+          onClick={() => setParam({ desc: desc ? null : 'true', page: null })}
           title={desc ? 'По убыванию' : 'По возрастанию'}
         >
           {desc ? '↓' : '↑'}
@@ -163,9 +173,9 @@ export default function CatalogPage() {
           </div>
           {totalPages > 1 && (
             <div style={styles.pagination}>
-              <button style={styles.pageBtn} disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Назад</button>
+              <button style={styles.pageBtn} disabled={page === 1} onClick={() => setParam({ page: String(page - 1) })}>← Назад</button>
               <span style={styles.pageInfo}>Страница {page} из {totalPages}</span>
-              <button style={styles.pageBtn} disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Вперёд →</button>
+              <button style={styles.pageBtn} disabled={page >= totalPages} onClick={() => setParam({ page: String(page + 1) })}>Вперёд →</button>
             </div>
           )}
         </>

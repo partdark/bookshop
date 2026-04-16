@@ -1,0 +1,29 @@
+groups:
+  - name: backend_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокий процент ошибок 5xx"
+          description: "Сервис возвращает более 5% ошибок в течение 5 минут"
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокая задержка ответа"
+          description: "95-й перцентиль задержки превышает 1 секунду"
+
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Высокая нагрузка на сервер"
+          description: "Сервер обрабатывает более 100 запросов в секунду"

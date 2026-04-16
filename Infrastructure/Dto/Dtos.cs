@@ -1,4 +1,6 @@
-﻿namespace Infrastructure.Dto
+﻿using System.Text.Json.Serialization;
+
+namespace Infrastructure.Dto
 {
     public record Dtos<T>(int TotalCount, int PageCount, int CurrentPage, bool HasNext, bool HasPrevious)
     {
@@ -17,6 +19,7 @@
 
     public record ListWithBooksBaseData(int TotalCount, int PageNumber, int PageCapacity, bool HasNext, bool HasPrevious)
     {
+        [JsonInclude]
         public List<BookBaseData> Books { get; set; } = new();
     }
 

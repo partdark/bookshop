@@ -1,12 +1,11 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
 using System.Linq.Dynamic.Core;
-using System.Runtime.InteropServices.Marshalling;
-
 
 namespace Infrastructure.Repositories
 {
@@ -14,12 +13,13 @@ namespace Infrastructure.Repositories
     {
         private readonly BookShopContext _context;
         private readonly HybridCache _cache;
-
+        
 
         public BooksRepository(BookShopContext context, HybridCache hybridCache)
         {
             _context = context;
             _cache = hybridCache;
+            
         }
 
 
@@ -69,10 +69,11 @@ namespace Infrastructure.Repositories
                     b.Genres.Select(g => new BookGenreData(g.Id, g.Name)).ToList()))
                 .ToListAsync();
 
-            return new ListWithBooksBaseData(totalCount, pageNumber, pageCapacity, pageNumber < lastPage, pageNumber > 1)
+            var result = new ListWithBooksBaseData(totalCount, pageNumber, pageCapacity, pageNumber < lastPage, pageNumber > 1)
             {
                 Books = data
             };
+            return result;
         }
 
         public async Task<List<Guid>> AddAuthorsFromBdToBook(Guid bookId, List<Guid> authors)
@@ -82,7 +83,7 @@ namespace Infrastructure.Repositories
             var authorsToAdd = await _context.Authors.Where(a => authors.Contains(a.Id)).ToListAsync();
             if (authorsToAdd.Count() != authors.Count())
             {
-                throw new ArgumentException("Не все авторы зарегистрированы в базе данных");
+                throw new ArgumentException("�� ��� ������ ���������������� � ���� ������");
             }
             foreach (var author in authorsToAdd)
             {
@@ -92,6 +93,7 @@ namespace Infrastructure.Repositories
                 }
             }
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("mainpage");
 
             return authors;
 
@@ -104,7 +106,7 @@ namespace Infrastructure.Repositories
             var genresToAdd = await _context.Genres.Where(a => genres.Contains(a.Id)).ToListAsync();
             if (genresToAdd.Count() != genres.Count())
             {
-                throw new ArgumentException("Не все жанры зарегистрированы в базе данных");
+                throw new ArgumentException("�� ��� ����� ���������������� � ���� ������");
             }
             foreach (var genre in genresToAdd)
             {
@@ -114,6 +116,7 @@ namespace Infrastructure.Repositories
                 }
             }
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("mainpage");
 
             return genres;
 
@@ -143,6 +146,7 @@ namespace Infrastructure.Repositories
             }
             _context.Books.Remove(entity);
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("mainpage");
             return true;
         }
 
@@ -210,23 +214,23 @@ namespace Infrastructure.Repositories
         {
             _context.Update(entity);
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("mainpage");
             return entity;
         }
 
         public async Task UpdateCountAsync(Guid id, int count)
         {
-            var result = await _context.Books
+            await _context.Books
                    .Where(b => b.Id == id)
                    .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, count));
-            if (result == 1)
-            {
-                var key = $"book:{id}";
-                await _cache.RemoveAsync(key);
-            }  
+            await _cache.RemoveAsync("mainpage");
+            await _cache.RemoveAsync($"book:{id}");
         }
 
         public async Task PatchScalarFieldsAsync(Guid id, string title, string description, float rating, decimal price, string urlImage, int count, int publicationYear)
         {
+            await _cache.RemoveAsync("mainpage");
+            await _cache.RemoveAsync($"book:{id}");
             await _context.Books
                 .Where(b => b.Id == id)
                 .ExecuteUpdateAsync(s => s
@@ -252,6 +256,7 @@ namespace Infrastructure.Repositories
             }
             _context.Books.Add(entity);
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("mainpage");
             return entity;
         }
         public async Task<bool> AddAsyncWithExistsAuthorAndGenres(Book entity, List<Guid> authors, List<Guid> genres)
@@ -271,6 +276,7 @@ namespace Infrastructure.Repositories
                         await AddGenresFromBdToBook(book.Id, genres);
                     }
                     await transaction.CommitAsync();
+                    await _cache.RemoveAsync("mainpage");
                     return true;
                 }
                 catch (Exception ex)

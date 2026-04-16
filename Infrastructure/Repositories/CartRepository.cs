@@ -2,6 +2,7 @@
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Infrastructure.Repositories
@@ -10,11 +11,13 @@ namespace Infrastructure.Repositories
     {
         private readonly BookShopContext _context;
         private readonly HybridCache _cache;
+        
 
         public CartRepository(BookShopContext context, HybridCache cache)
         {
             _context = context;
             _cache = cache;
+          
         }
 
         public async Task<List<CartItem>?> GetCartItemsByCustomerId(Guid customerId)
@@ -148,6 +151,7 @@ namespace Infrastructure.Repositories
                         .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, newCount));
                     await _cache.RemoveAsync($"book:{item.BookId}");
                 }
+                await _cache.RemoveAsync("mainpage");
 
             
                 await _context.CartItems

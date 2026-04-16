@@ -98,7 +98,7 @@ namespace Application.Services
             await _userManager.UpdateAsync(customer);
         }
 
-        // ── helpers ──────────────────────────────────────────────────────────
+  
 
         private async Task<AuthResponseDto> BuildResponse(Customer customer)
         {

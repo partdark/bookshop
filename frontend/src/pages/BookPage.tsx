@@ -4,12 +4,14 @@ import { getBook } from '../api/books'
 import { addToCart } from '../api/cart'
 import { addReview } from '../api/reviews'
 import { useAuthStore } from '../store/authStore'
+import { useCartStore } from '../store/cartStore'
 import StarRating from '../components/StarRating'
 import type { Book } from '../types'
 
 export default function BookPage() {
   const { id } = useParams<{ id: string }>()
   const { user, isAuthenticated } = useAuthStore()
+  const { increment } = useCartStore()
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
@@ -32,6 +34,7 @@ export default function BookPage() {
     if (!user || !book) return
     try {
       await addToCart(user.id, book.id, 1)
+      increment()
       showMsg('Добавлено в корзину')
     } catch {
       showMsg('Ошибка', false)

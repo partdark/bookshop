@@ -2,6 +2,8 @@
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Hybrid;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,10 +15,14 @@ namespace Infrastructure.Repositories
     public class OrdersRepository : IOrdersRepository
     {
         private readonly BookShopContext _context;
+        private readonly HybridCache _cache;
+       
 
-        public OrdersRepository(BookShopContext context)
+        public OrdersRepository(BookShopContext context, HybridCache hybridCache)
         {
             _context = context;
+            _cache = hybridCache;
+          
         }
         public async Task<Order> AddAsync(Order entity)
         {
@@ -27,6 +33,7 @@ namespace Infrastructure.Repositories
             }
             _context.Orders.Add(entity);
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("mainpage");
             return entity;
         }
 

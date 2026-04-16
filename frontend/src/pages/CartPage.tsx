@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { getCart, updateCartItem, removeFromCart, clearCart, checkout } from '../api/cart'
 import { useAuthStore } from '../store/authStore'
 import { useCartStore } from '../store/cartStore'
@@ -8,7 +8,6 @@ import type { CartItem } from '../types'
 export default function CartPage() {
   const { user } = useAuthStore()
   const { setCount } = useCartStore()
-  const navigate = useNavigate()
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
@@ -47,19 +46,24 @@ export default function CartPage() {
       return
     }
     await updateCartItem(user.id, bookId, count)
-    setItems(prev => prev.map(i => i.book.id === bookId ? { ...i, quantity: count } : i))
+    const updated = items.map(i => i.book.id === bookId ? { ...i, quantity: count } : i)
+    setItems(updated)
+    setCount(updated.reduce((s, i) => s + i.quantity, 0))
   }
 
   const handleRemove = async (bookId: string) => {
     if (!user) return
     await removeFromCart(user.id, bookId)
-    setItems(prev => prev.filter(i => i.book.id !== bookId))
+    const updated = items.filter(i => i.book.id !== bookId)
+    setItems(updated)
+    setCount(updated.reduce((s, i) => s + i.quantity, 0))
   }
 
   const handleClear = async () => {
     if (!user) return
     await clearCart(user.id)
     setItems([])
+    setCount(0)
   }
 
   const handleCheckout = async () => {
@@ -68,8 +72,8 @@ export default function CartPage() {
     try {
       await checkout(user.id)
       setItems([])
+      setCount(0)
       showMsg('Заказ оформлен!')
-      setTimeout(() => navigate('/profile'), 2000)
     } catch (err: any) {
       const serverMsg = err?.response?.data
       showMsg(typeof serverMsg === 'string' ? serverMsg : 'Ошибка при оформлении заказа', false)

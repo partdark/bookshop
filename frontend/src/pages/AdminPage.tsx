@@ -137,7 +137,7 @@ function BooksTab({ showToast }: { showToast: (m: string, ok?: boolean) => void 
   const [saving, setSaving] = useState<string | null>(null)
 
   useEffect(() => {
-    getCatalog({ pageCapacity: 100, countMoreThemZero: false })
+    getCatalog({ pageCapacity: 100, countMoreThenZero: false })
       .then(r => setBooks(r.books))
       .catch(() => showToast('Ошибка загрузки книг', false))
       .finally(() => setLoading(false))

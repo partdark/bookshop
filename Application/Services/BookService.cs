@@ -4,27 +4,23 @@ using Domain.Entities;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
-using NpgsqlTypes;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace Application.Services
 {
-
     public class BookService : IBookService
     {
         private readonly IBooksRepository _booksRepository;
-        private readonly HybridCache  _cache;
-        
+        private readonly HybridCache _cache;
+       
 
         public BookService(IBooksRepository booksRepository, HybridCache hybridCache)
         {
             _booksRepository = booksRepository;
             _cache = hybridCache;
+         
         }
 
         public async Task<Guid> CreateBookWithIndicatingExistingAuthorsAndgenres(AddBookDto bookDto,
@@ -45,12 +41,7 @@ namespace Application.Services
 
             };
             var result = await _booksRepository.AddAsyncWithExistsAuthorAndGenres(book, authorDto, genres);
-
             return book.Id;
-
-
-
-
         }
 
         public async Task<BookResponseDto?> GetById(Guid id)
@@ -94,7 +85,6 @@ namespace Application.Services
 
             });
             return book.Id;
-
         }
 
         public async Task<List<Guid>> GetBookSIds()
@@ -120,19 +110,44 @@ namespace Application.Services
         }
 
         public async Task<ListWithBooksBaseData> BookShowcase(int pageCapacity, int pageNumber, string orderBy,
-            bool notAscending, string? searchingWords , bool countMoreThenZero)
+            bool notAscending, string? searchingWords, bool countMoreThenZero)
         {
+            if (pageCapacity == 20 && pageNumber == 1 && orderBy == "Title" && notAscending == false
+                && searchingWords == null && countMoreThenZero == true)
+            {
+                var result = await _cache.GetOrCreateAsync("mainpage", async t =>
+                {
+                    return await _booksRepository.BooksBaseData(pageCapacity, pageNumber, orderBy, notAscending, searchingWords, countMoreThenZero);
+                }, new HybridCacheEntryOptions
+                {
+                    Expiration = TimeSpan.FromMinutes(3),
+                    LocalCacheExpiration = TimeSpan.FromMinutes(3)
+                }
+                );
+                /* const string key = "mainpage";
+                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+                 var cached = await _distributedCache.GetStringAsync(key);
+                 if (cached != null)
+                 {
+                     var deserialized = JsonSerializer.Deserialize<ListWithBooksBaseData>(cached, options);
+                     if (deserialized != null)
+                         return deserialized;
+                 }
+
+                 var result = await _booksRepository.BooksBaseData(pageCapacity, pageNumber, orderBy, notAscending, searchingWords, countMoreThenZero);
+                 await _distributedCache.SetStringAsync(key, JsonSerializer.Serialize(result, options),
+                     new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(3) });
+               */
+                return result; 
+            }
+
             return await _booksRepository.BooksBaseData(pageCapacity, pageNumber, orderBy, notAscending, searchingWords, countMoreThenZero);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var result =  await _booksRepository.DeleteAsync(id);
-            if (result)
-            {
-               await _cache.RemoveAsync($"book:{id}");
-            }
-            return result;
+            return await _booksRepository.DeleteAsync(id);
         }
 
         public async Task<BookResponseDto?> UpdateBook(BookResponseDto bookResponse)
@@ -157,9 +172,7 @@ namespace Application.Services
                 Reviews = (ICollection<Review>)bookResponse.Reviews,
             };
             await _booksRepository.UpdateAsync(book);
-            await _cache.RemoveAsync($"book:{bookResponse.Id}");
             return bookResponse;
-
         }
 
         public async Task<AddBookDto?> PatchBook(Guid id, JsonPatchDocument<AddBookDto> patchBook)
@@ -177,7 +190,6 @@ namespace Application.Services
                 bookDto.Title, bookDto.Description, bookDto.Rating,
                 bookDto.Price, bookDto.UrlImage, bookDto.Count, bookDto.PublicationYear);
 
-            await _cache.RemoveAsync($"book:{id}");
             return bookDto;
         }
     }

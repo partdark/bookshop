@@ -7,7 +7,7 @@ export const getCatalog = (params: {
   titleContains?: string
   orderBy?: string
   desc?: boolean
-  countMoreThemZero?: boolean
+  countMoreThenZero?: boolean
 }) =>
   api.get<CatalogResponse>('/catalog', { params }).then((r) => r.data)
 
