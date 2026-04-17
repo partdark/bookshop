@@ -1,4 +1,7 @@
 using Application.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 public class RatingRecalculationStartupService : BackgroundService
 {

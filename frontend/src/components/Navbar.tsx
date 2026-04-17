@@ -10,7 +10,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Загружаем счётчик при авторизации
+  
   useEffect(() => {
     if (user) loadCount(user.id)
   }, [user])

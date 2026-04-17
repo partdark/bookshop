@@ -1,6 +1,3 @@
-using Application;
-using Application.Interfaces;
-using Application.Services;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,12 +5,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Text;
 using System.Threading.RateLimiting;
+using BookShopApplicationDI;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHealthChecks();
@@ -59,18 +56,9 @@ builder.Services.AddSwaggerGen(c =>
     c.InferSecuritySchemes();
 });
 
+builder.Services.AddApplicationServices(builder.Configuration);
 
-builder.Services.Addifrastructure(builder.Configuration);
 
-
-builder.Services.AddIdentity<Customer, IdentityRole<Guid>>(options =>
-{
-    options.SignIn.RequireConfirmedAccount = false;
-    options.Password.RequireDigit = false;
-    options.Password.RequiredLength = 4;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-}).AddEntityFrameworkStores<BookShopContext>().AddDefaultTokenProviders();
 
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -93,8 +81,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddHostedService<RatingRecalculationStartupService>();
+
 
 
 builder.Services.AddCors(options =>

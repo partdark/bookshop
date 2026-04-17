@@ -83,7 +83,7 @@ namespace Infrastructure.Repositories
             var authorsToAdd = await _context.Authors.Where(a => authors.Contains(a.Id)).ToListAsync();
             if (authorsToAdd.Count() != authors.Count())
             {
-                throw new ArgumentException("�� ��� ������ ���������������� � ���� ������");
+                throw new ArgumentException("Не все авторы существуют для данной книги");
             }
             foreach (var author in authorsToAdd)
             {
@@ -106,7 +106,7 @@ namespace Infrastructure.Repositories
             var genresToAdd = await _context.Genres.Where(a => genres.Contains(a.Id)).ToListAsync();
             if (genresToAdd.Count() != genres.Count())
             {
-                throw new ArgumentException("�� ��� ����� ���������������� � ���� ������");
+                throw new ArgumentException("Не все жанры существуют для данной книги");
             }
             foreach (var genre in genresToAdd)
             {
@@ -223,13 +223,19 @@ namespace Infrastructure.Repositories
             await _context.Books
                    .Where(b => b.Id == id)
                    .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, count));
-            await _cache.RemoveAsync("mainpage");
+            if (count == 0)
+            {
+                await _cache.RemoveAsync("mainpage");
+            }
             await _cache.RemoveAsync($"book:{id}");
         }
 
         public async Task PatchScalarFieldsAsync(Guid id, string title, string description, float rating, decimal price, string urlImage, int count, int publicationYear)
         {
-            await _cache.RemoveAsync("mainpage");
+            if (count == 0)
+            {
+                await _cache.RemoveAsync("mainpage");
+            }
             await _cache.RemoveAsync($"book:{id}");
             await _context.Books
                 .Where(b => b.Id == id)
@@ -282,7 +288,7 @@ namespace Infrastructure.Repositories
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    throw;
+                    throw new Exception($"Ошбика выполнения транзакции с книгой {entity.Id} {entity.Title}");
                 }
             }
 
