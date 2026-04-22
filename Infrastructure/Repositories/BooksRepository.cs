@@ -13,13 +13,13 @@ namespace Infrastructure.Repositories
     {
         private readonly BookShopContext _context;
         private readonly HybridCache _cache;
-        
+
 
         public BooksRepository(BookShopContext context, HybridCache hybridCache)
         {
             _context = context;
             _cache = hybridCache;
-            
+
         }
 
 
@@ -45,11 +45,25 @@ namespace Infrastructure.Repositories
             if (!string.IsNullOrWhiteSpace(searchingWords))
                 q = q.Where(x => EF.Functions.Like(x.Title, $"%{searchingWords}%"));
 
+            /*
             if (string.IsNullOrEmpty(orderBy))
                 orderBy = "Title";
 
             var orderType = notAscending ? "desc" : "asc";
             q = q.OrderBy($"{orderBy} {orderType}");
+            */
+
+            if (SortMapper.Map.TryGetValue(orderBy, out var CurentOrdering))
+            {
+                q = notAscending ?
+                     q.OrderByDescending(CurentOrdering) : q.OrderBy(CurentOrdering);
+            }
+            else
+            {
+                q = notAscending ?
+                    q.OrderByDescending(b => b.Title) : q.OrderBy(b => b.Title);
+            }
+
 
             var totalCount = await q.CountAsync();
 
