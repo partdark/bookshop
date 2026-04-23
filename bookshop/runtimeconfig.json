@@ -1,0 +1,16 @@
+{
+  "runtimeOptions": {
+    "configProperties": {
+      "System.GC.Server": false,
+      "System.GC.HeapHardLimitPercent": 55,
+      "System.GC.DynamicAdaptationMode": 1,
+      "System.GC.Concurrent": true,
+      "System.GC.LargeObjectHeapCompactionMode": 1,
+      "System.Threading.ThreadPool.UnfairSemaphore": true,
+      "System.Threading.ThreadPool.MinThreads": 6,
+      "System.Threading.ThreadPool.MaxThreads": 24,
+      "System.Net.Http.EnableActivityPropagation": false,
+      "System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault": false
+    }
+  }
+}

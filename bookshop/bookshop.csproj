@@ -34,6 +34,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
+	<None Update="runtimeconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
