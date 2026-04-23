@@ -28,7 +28,7 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     ports:
-      - "8080:8080"
+      - "5000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
@@ -112,7 +112,7 @@ volumes:
   bookshopdb_data:
   prometheus_data:
   grafana_data:
-  redis_data:
+ # redis_data:
 
 networks:
   bookshop-network:

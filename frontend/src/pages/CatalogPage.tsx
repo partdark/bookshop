@@ -59,14 +59,19 @@ export default function CatalogPage() {
         orderBy,
         desc,
       })
+      console.log('[CatalogPage] API response:', data)
       // 4: фильтрация по жанру на клиенте (API не поддерживает фильтр по жанру)
       let result = data.books ?? []
+      console.log('[CatalogPage] Books before genre filter:', result.length)
       if (selectedGenre) {
         result = result.filter(b => b.genres?.some(g => g.id === selectedGenre))
+        console.log('[CatalogPage] Books after genre filter:', result.length)
       }
       setBooks(result)
       setTotal(data.totalCount ?? 0)
-    } catch {
+      console.log('[CatalogPage] Final books count:', result.length)
+    } catch (err) {
+      console.error('[CatalogPage] Error loading catalog:', err)
       setBooks([])
     } finally {
       setLoading(false)

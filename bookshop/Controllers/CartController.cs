@@ -28,10 +28,7 @@ namespace bookshop.Controllers
                 return NotFound($"Cart for customer {customerId} not found.");
 
             }
-            if (cartItems.Count == 0)
-            {
-                return Ok(cartItems);
-            }
+            
             return Ok(cartItems);
         }
 

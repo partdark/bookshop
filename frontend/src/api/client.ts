@@ -1,6 +1,29 @@
 import axios from 'axios'
 
-const api = axios.create({ baseURL: '/api' })
+const apiBase = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api'
+const api = axios.create({ 
+  baseURL: apiBase
+})
+
+// Логирование для отладки
+api.interceptors.request.use((config) => {
+  const url = config.baseURL ? `${config.baseURL}${config.url || ''}` : config.url
+  console.log('[API Request]', config.method?.toUpperCase(), url, config.params)
+  return config
+})
+
+api.interceptors.response.use(
+  (response) => {
+    const url = response.config.baseURL ? `${response.config.baseURL}${response.config.url || ''}` : response.config.url
+    console.log('[API Response]', response.status, url, response.data)
+    return response
+  },
+  (error) => {
+    const url = error.config?.baseURL ? `${error.config.baseURL}${error.config?.url || ''}` : error.config?.url
+    console.error('[API Error]', error.response?.status, url, error.message)
+    return Promise.reject(error)
+  }
+)
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')

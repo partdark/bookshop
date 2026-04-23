@@ -19,9 +19,13 @@ namespace Application.Services
         public async Task<List<CartItemDto>?> GetCartItemsByCustomerId(Guid customerId)
         {
             var cartItems = await _cartRepository.GetCartItemsByCustomerId(customerId);
-            if (cartItems == null || !cartItems.Any())
+            if (cartItems == null)
             {
                 return null;
+            }
+            if (cartItems.Count == 0)
+            {
+                return new List<CartItemDto>(0);
             }
 
             var cartItemDtos = new List<CartItemDto>();
