@@ -120,8 +120,8 @@ namespace Application.Services
                     return await _booksRepository.BooksBaseData(pageCapacity, pageNumber, orderBy, notAscending, searchingWords, countMoreThenZero);
                 }, new HybridCacheEntryOptions
                 {
-                    Expiration = TimeSpan.FromMinutes(3),
-                    LocalCacheExpiration = TimeSpan.FromMinutes(3)
+                    Expiration = null,
+                    LocalCacheExpiration = null
                 }
                 );
                 /* const string key = "mainpage";

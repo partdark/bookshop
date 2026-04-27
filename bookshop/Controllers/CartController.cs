@@ -23,10 +23,12 @@ namespace bookshop.Controllers
         public async Task<IActionResult> GetCartItems(Guid customerId)
         {
             var cartItems = await _cartService.GetCartItemsByCustomerId(customerId);
-            if (cartItems == null || !cartItems.Any())
+            if (cartItems == null)
             {
-                return NotFound($"Cart for customer {customerId} not found or is empty.");
+                return NotFound($"Cart for customer {customerId} not found.");
+
             }
+            
             return Ok(cartItems);
         }
 

@@ -1,3 +1,4 @@
+using BookShopApplicationDI;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,9 +9,9 @@ using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Runtime;
 using System.Text;
 using System.Threading.RateLimiting;
-using BookShopApplicationDI;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHealthChecks();
@@ -177,4 +178,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 app.MapHealthChecks("/health");
+Console.WriteLine($"GC Server mode: {GCSettings.IsServerGC}");
+
 app.Run();
