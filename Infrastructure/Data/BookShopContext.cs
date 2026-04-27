@@ -17,22 +17,22 @@ namespace Infrastructure.Data
 
         }
 
-        public DbSet<Book> Books { get; set; }
-        public DbSet<Author> Authors { get; set; }
+        public virtual DbSet<Book> Books { get; set; }
+        public virtual DbSet<Author> Authors { get; set; }
 
 
         //Используется core identity user
         //  public DbSet<Customer> Customers { get; set; }
 
-        public DbSet<Genre> Genres { get; set; }
+        public virtual DbSet<Genre> Genres { get; set; }
 
-        public DbSet<Order> Orders { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
 
-        public DbSet<Review> Reviews { get; set; }
+        public virtual DbSet<Review> Reviews { get; set; }
 
-        public DbSet<OrderItems> OrderItems { get; set; }
+        public virtual DbSet<OrderItems> OrderItems { get; set; }
 
-        public DbSet<CartItem> CartItems { get; set; }
+        public virtual DbSet<CartItem> CartItems { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
