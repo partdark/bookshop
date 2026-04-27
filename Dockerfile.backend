@@ -20,6 +20,7 @@ WORKDIR "/src/bookshop"
 RUN dotnet publish "bookshop.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
+RUN apt-get update && apt-get install -y curl
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "bookshop.dll"]

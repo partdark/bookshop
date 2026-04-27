@@ -1,6 +1,8 @@
 <Solution>
   <Project Path="Application/Application.csproj" Id="4e506817-8751-4129-95e9-f0f3e4fa1d5c" />
-  <Project Path="Bookshop.NUnitTests/Bookshop.NUnitTests.csproj" />
+  <Project Path="Bookshop.NUnitTests/Bookshop.NUnitTests.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="bookshop/bookshop.csproj" />
   <Project Path="Domain/Domain.csproj" />
   <Project Path="Infrastructure/Infrastructure.csproj" />

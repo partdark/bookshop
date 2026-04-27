@@ -30,7 +30,7 @@ namespace Infrastructure.Repositories
 
         }
 
-        public async Task<Author> AddAsync(Author author)
+        public async Task<Author?> AddAsync(Author author)
         {
             if (await GetByIdAsync(author.Id) != null)
             {

@@ -44,7 +44,7 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public async Task<Genre> AddAsync(Genre entity)
+        public async Task<Genre?> AddAsync(Genre entity)
         {
             if (entity == null)
             {

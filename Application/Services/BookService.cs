@@ -35,9 +35,9 @@ namespace Application.Services
                 UrlImage = bookDto.UrlImage,
                 Count = bookDto.Count,
                 PublicationYear = bookDto.PublicationYear,
-                Authors = new List<Author>(),
-                Genres = new List<Genre>(),
-                Reviews = new List<Review>()
+                Authors = [],
+                Genres = [],
+                Reviews = []
 
             };
             var result = await _booksRepository.AddAsyncWithExistsAuthorAndGenres(book, authorDto, genres);
@@ -79,9 +79,9 @@ namespace Application.Services
                 UrlImage = bookDto.UrlImage,
                 Count = bookDto.Count,
                 PublicationYear = bookDto.PublicationYear,
-                Authors = new List<Author>(),
-                Genres = new List<Genre>(),
-                Reviews = new List<Review>()
+                Authors = [],
+                Genres = [],
+                Reviews = []
 
             });
             return book.Id;

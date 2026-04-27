@@ -46,6 +46,11 @@ services:
         condition: service_healthy
      # redis:
      #   condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: on-failure
     networks:
       - bookshop-network
@@ -57,7 +62,8 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: on-failure
     networks:
       - bookshop-network
