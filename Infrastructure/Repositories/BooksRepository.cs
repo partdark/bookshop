@@ -95,7 +95,7 @@ namespace Infrastructure.Repositories
             var book = await GetByIdAsync(bookId);
 
             var authorsToAdd = await _context.Authors.Where(a => authors.Contains(a.Id)).ToListAsync();
-            if (authorsToAdd.Count() != authors.Count())
+            if (authorsToAdd.Count != authors.Count)
             {
                 throw new ArgumentException("Не все авторы существуют для данной книги");
             }
@@ -118,7 +118,7 @@ namespace Infrastructure.Repositories
             var book = await GetByIdAsync(bookId);
 
             var genresToAdd = await _context.Genres.Where(a => genres.Contains(a.Id)).ToListAsync();
-            if (genresToAdd.Count() != genres.Count())
+            if (genresToAdd.Count != genres.Count)
             {
                 throw new ArgumentException("Не все жанры существуют для данной книги");
             }
@@ -203,7 +203,7 @@ namespace Infrastructure.Repositories
             {
                 return new Dtos<Book>(default, default, default, default, default)
                 {
-                    Items = new List<Book>(),
+                    Items = [],
                     TotalCount = 0,
                     PageCount = 0,
                     CurrentPage = 0,
@@ -278,11 +278,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Book?> AddAsync(Book entity)
         {
-            if (entity == null)
-            {
-
-                throw new ArgumentNullException($"{nameof(entity)}");
-            }
+            ArgumentNullException.ThrowIfNull(entity);
             if (await GetByIdAsync(entity.Id) != null)
             {
                 throw new InvalidOperationException($"Book with ID{entity.Id} exists");
@@ -295,28 +291,26 @@ namespace Infrastructure.Repositories
         public async Task<bool> AddAsyncWithExistsAuthorAndGenres(Book entity, List<Guid> authors, List<Guid> genres)
         {
 
-            using (var transaction = _context.Database.BeginTransaction())
+            using var transaction = _context.Database.BeginTransaction();
+            try
             {
-                try
+                var book = await AddAsync(entity);
+                if (authors.Count > 0)
                 {
-                    var book = await AddAsync(entity);
-                    if (authors.Count > 0)
-                    {
-                        await AddAuthorsFromBdToBook(book.Id, authors);
-                    }
-                    if (genres.Count > 0)
-                    {
-                        await AddGenresFromBdToBook(book.Id, genres);
-                    }
-                    await transaction.CommitAsync();
-                    await _cache.RemoveAsync("mainpage");
-                    return true;
+                    await AddAuthorsFromBdToBook(book.Id, authors);
                 }
-                catch (Exception ex)
+                if (genres.Count > 0)
                 {
-                    transaction.Rollback();
-                    throw new Exception($"Ошбика выполнения транзакции с книгой {entity.Id} {entity.Title}");
+                    await AddGenresFromBdToBook(book.Id, genres);
                 }
+                await transaction.CommitAsync();
+                await _cache.RemoveAsync("mainpage");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception($"Ошбика выполнения транзакции с книгой {entity.Id} {entity.Title}");
             }
 
 

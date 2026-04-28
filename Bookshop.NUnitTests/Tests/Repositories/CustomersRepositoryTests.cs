@@ -54,8 +54,8 @@ namespace Bookshop.NUnitTests.Tests.Repositories
           
             var customers = new List<Customer>
             {
-                new Customer { Id = Guid.NewGuid(), UserName = "Customer 1" },
-                new Customer { Id = Guid.NewGuid(), UserName = "Customer 2" }
+                new() { Id = Guid.NewGuid(), UserName = "Customer 1" },
+                new() { Id = Guid.NewGuid(), UserName = "Customer 2" }
             };
             _mockContext.Setup(c => c.Users).ReturnsDbSet(customers);
             var expected = customers.Select(g => new IdWithNAme(g.Id, g.UserName)).ToList();
@@ -64,7 +64,7 @@ namespace Bookshop.NUnitTests.Tests.Repositories
             var result = await _repository.GetIdsWithNamesAsync();
 
            
-            Assert.That(result.Count(), Is.EqualTo(expected.Count));
+            Assert.That(result.Count, Is.EqualTo(expected.Count));
             Assert.That(result.First().Id, Is.EqualTo(expected.First().Id));
             Assert.That(result.First().Name, Is.EqualTo(expected.First().Name));
         }

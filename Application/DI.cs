@@ -1,5 +1,4 @@
-﻿
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Services;
 using Infrastructure;
 using Infrastructure.Data;
@@ -11,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 
 
-namespace BookShopApplicationDI
+namespace Application
 {
    public static  class DI {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration) 

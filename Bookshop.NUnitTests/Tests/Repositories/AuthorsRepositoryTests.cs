@@ -39,7 +39,7 @@ namespace Bookshop.NUnitTests.Tests.Repositories
             var result = await _repository.GetIdsAsync();
 
             
-            Assert.That(result.Count(), Is.EqualTo(authors.Count));
+            Assert.That(result.Count, Is.EqualTo(authors.Count));
             Assert.That(result, Is.EquivalentTo(authors.Select(a => a.Id)));
         }
     }
