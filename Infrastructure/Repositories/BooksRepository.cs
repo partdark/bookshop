@@ -175,7 +175,9 @@ namespace Infrastructure.Repositories
                    .Include(g => g.Genres)
                    .Include(r => r.Reviews)
                    .AsQueryable();
-            if (!string.IsNullOrEmpty(orderBy))
+
+
+            /*if (!string.IsNullOrEmpty(orderBy))
             {
                 var orderString = $"{orderBy} {(ascending ? "asc" : "desc")}";
                 q = q.OrderBy(orderString);
@@ -183,6 +185,17 @@ namespace Infrastructure.Repositories
             else
             {
                 q = q.OrderBy(t => t.Title);
+            }
+            */
+            if (SortMapper.Map.TryGetValue(orderBy, out var CurentOrdering))
+            {
+                q = !ascending ?
+                     q.OrderByDescending(CurentOrdering) : q.OrderBy(CurentOrdering);
+            }
+            else
+            {
+                q = !ascending ?
+                    q.OrderByDescending(b => b.Title) : q.OrderBy(b => b.Title);
             }
             var total = await q.CountAsync();
             var pages = (int)Math.Ceiling((double)total / pageSize);
