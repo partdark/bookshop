@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 
 
-namespace BookShopInfrastructureDI
+namespace Infrastructure
 {
     public static class DI
     {

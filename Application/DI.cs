@@ -1,7 +1,7 @@
 ﻿
 using Application.Interfaces;
 using Application.Services;
-using BookShopInfrastructureDI;
+using Infrastructure;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
