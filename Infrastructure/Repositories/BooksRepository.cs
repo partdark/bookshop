@@ -5,7 +5,7 @@ using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
-using System.Linq.Dynamic.Core;
+//using System.Linq.Dynamic.Core;
 
 namespace Infrastructure.Repositories
 {
