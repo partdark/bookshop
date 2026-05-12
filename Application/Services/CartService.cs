@@ -1,8 +1,6 @@
 using Application.Dto;
 using Application.Interfaces;
-using Domain.Entities;
 using Infrastructure.Interfaces;
-
 namespace Application.Services
 {
     public class CartService : ICartService

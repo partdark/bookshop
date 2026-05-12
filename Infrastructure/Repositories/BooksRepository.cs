@@ -43,7 +43,11 @@ namespace Infrastructure.Repositories
             }
 
             if (!string.IsNullOrWhiteSpace(searchingWords))
-                q = q.Where(x => EF.Functions.Like(x.Title, $"%{searchingWords}%"));
+                q = q.Where(x => EF.Functions.Like(x.Title, $"%{searchingWords
+                    .Replace("%", "[%]")
+                    .Replace("_", "[_]")
+                    .Replace("[", "[[]")}%")
+                );
 
             /*
             if (string.IsNullOrEmpty(orderBy))
