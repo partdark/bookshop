@@ -51,6 +51,7 @@ namespace Application.Services
                 BookId = reviewDto.BookId,
                 CustomerId = reviewDto.CustomerId,
             };
+            await _reviewsRepository.AddAsync(review);
             await _ratingService.RecalculateAsync(review.BookId);
             return review.Id;
         }
