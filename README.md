@@ -15,7 +15,7 @@
 Запускает всё сразу: базу данных, бэкенд и фронтенд.
 
 ```bash
-cd bookshop
+cd bookshop (или папка проекта в которой находятся файлы)
 docker compose up --build
 ```
 
@@ -24,7 +24,7 @@ docker compose up --build
 | Сервис    | Адрес                        |
 |-----------|------------------------------|
 | Фронтенд  | http://localhost:3000         |
-| API       | http://localhost:8080         |
+| API       | http://localhost:5000         |
 | Swagger   | http://localhost:8080/swagger |
 | PostgreSQL| localhost:5435                |
 
