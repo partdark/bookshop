@@ -152,7 +152,7 @@ namespace Application.Services
 
         public async Task<BookResponseDto?> UpdateBook(BookResponseDto bookResponse)
         {
-            var bookToUpdate = _booksRepository.GetByIdAsync(bookResponse.Id);
+            var bookToUpdate = await _booksRepository.GetByIdAsync(bookResponse.Id);
             if (bookToUpdate == null)
             {
                 return null;

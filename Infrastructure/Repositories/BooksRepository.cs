@@ -147,7 +147,7 @@ namespace Infrastructure.Repositories
                   .Include(g => g.Genres)
                   .Include(r => r.Reviews)
                       .ThenInclude(r => r.Customer)
-                  .AsSingleQuery()
+                  .AsSplitQuery()
                   .FirstOrDefaultAsync(b => b.Id == id);
 
             return entity;

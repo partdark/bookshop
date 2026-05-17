@@ -29,7 +29,10 @@ namespace Application.Services
 
         public async Task<int> Add(AddOrderDto orderDto)
         {
-            var orderItems = new List<OrderItems>();
+            using var transaction = await _ordersRepository.BeginTransactionAsync();
+            try
+            {
+                 var orderItems = new List<OrderItems>();
             decimal totalPrice = 0;
 
         
@@ -77,6 +80,13 @@ namespace Application.Services
             await _ordersRepository.AddAsync(order);
             await _cache.RemoveAsync("mainpage");
             return order.Id;
+            }
+            catch 
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+           
         }
 
         public async Task<bool> Delete(int id)

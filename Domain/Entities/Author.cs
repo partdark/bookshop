@@ -7,6 +7,6 @@
 
         public int Year { get; set; } = 0;
 
-        public ICollection<Book> Books = null!;
+        public ICollection<Book> Books = new List<Book>()!;
     }
 }

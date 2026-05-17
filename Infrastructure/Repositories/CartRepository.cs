@@ -118,10 +118,11 @@ namespace Infrastructure.Repositories
                
                 foreach (var item in cartItems)
                 {
-                    if (!books.TryGetValue(item.BookId, out var book))
-                        throw new ArgumentException($"Книга не найдена: {item.BookId}");
-                    if (book.Count < item.Quantity)
-                        throw new ArgumentException($"Недостаточно экземпляров книги «{book.Title}»: доступно {book.Count}, запрошено {item.Quantity}.");
+                    var rowsAffected = await _context.Books
+                        .Where(b => b.Id == item.BookId && b.Count >= item.Quantity)
+                        .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, b => b.Count - item.Quantity));
+                    if (rowsAffected == 0)
+                        throw new ArgumentException($"Недостаточно экземпляров книги «{item.Book?.Title}»: ");
                 }
 
                 var order = new Order { CustomerId = customerId };
