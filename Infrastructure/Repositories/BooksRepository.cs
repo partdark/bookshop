@@ -32,6 +32,7 @@ namespace Infrastructure.Repositories
 
             var q = _context.Books
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(b => b.Authors)
                 .Include(b => b.Genres)
                 .AsQueryable();
@@ -95,13 +96,25 @@ namespace Infrastructure.Repositories
 
         public async Task<List<Guid>> AddAuthorsFromBdToBook(Guid bookId, List<Guid> authors)
         {
-            var book = await GetByIdAsync(bookId);
+            // Загружаем книгу с tracking для модификации
+            var book = await _context.Books
+                .Include(b => b.Authors)
+                .FirstOrDefaultAsync(b => b.Id == bookId);
+            
+            if (book == null)
+            {
+                throw new KeyNotFoundException($"Книга с ID {bookId} не найдена");
+            }
 
-            var authorsToAdd = await _context.Authors.Where(a => authors.Contains(a.Id)).ToListAsync();
+            var authorsToAdd = await _context.Authors
+                .Where(a => authors.Contains(a.Id))
+                .ToListAsync();
+            
             if (authorsToAdd.Count != authors.Count)
             {
-                throw new ArgumentException("Не все авторы существуют для данной книги");
+                throw new ArgumentException("Не все авторы существуют в базе данных");
             }
+            
             foreach (var author in authorsToAdd)
             {
                 if (!book.Authors.Any(a => a.Id == author.Id))
@@ -109,34 +122,48 @@ namespace Infrastructure.Repositories
                     book.Authors.Add(author);
                 }
             }
+            
             await _context.SaveChangesAsync();
             await _cache.RemoveAsync("mainpage");
+            await _cache.RemoveAsync($"book:{bookId}");
 
             return authors;
-
         }
 
         public async Task<List<Guid>> AddGenresFromBdToBook(Guid bookId, List<Guid> genres)
         {
-            var book = await GetByIdAsync(bookId);
+            // Загружаем книгу с tracking для модификации
+            var book = await _context.Books
+                .Include(b => b.Genres)
+                .FirstOrDefaultAsync(b => b.Id == bookId);
+            
+            if (book == null)
+            {
+                throw new KeyNotFoundException($"Книга с ID {bookId} не найдена");
+            }
 
-            var genresToAdd = await _context.Genres.Where(a => genres.Contains(a.Id)).ToListAsync();
+            var genresToAdd = await _context.Genres
+                .Where(g => genres.Contains(g.Id))
+                .ToListAsync();
+            
             if (genresToAdd.Count != genres.Count)
             {
-                throw new ArgumentException("Не все жанры существуют для данной книги");
+                throw new ArgumentException("Не все жанры существуют в базе данных");
             }
+            
             foreach (var genre in genresToAdd)
             {
-                if (!book.Genres.Any(a => a.Id == genre.Id))
+                if (!book.Genres.Any(g => g.Id == genre.Id))
                 {
                     book.Genres.Add(genre);
                 }
             }
+            
             await _context.SaveChangesAsync();
             await _cache.RemoveAsync("mainpage");
+            await _cache.RemoveAsync($"book:{bookId}");
 
             return genres;
-
         }
 
 
@@ -155,15 +182,19 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-
-            var entity = await GetByIdAsync(id);
+            // Загружаем с tracking для удаления
+            var entity = await _context.Books
+                .FirstOrDefaultAsync(b => b.Id == id);
+            
             if (entity == null)
             {
                 return false;
             }
+            
             _context.Books.Remove(entity);
             await _context.SaveChangesAsync();
             await _cache.RemoveAsync("mainpage");
+            await _cache.RemoveAsync($"book:{id}");
             return true;
         }
 
@@ -174,6 +205,7 @@ namespace Infrastructure.Repositories
             if (pageNumber <= 0) pageNumber = 1;
 
             var q = _context.Books.AsNoTracking()
+                   .AsSplitQuery()
                    .Include(a => a.Authors)
                    .Include(g => g.Genres)
                    .Include(r => r.Reviews)
@@ -242,10 +274,30 @@ namespace Infrastructure.Repositories
 
         public async Task<Book> UpdateAsync(Book entity)
         {
-            _context.Update(entity);
-            await _context.SaveChangesAsync();
-            await _cache.RemoveAsync("mainpage");
-            return entity;
+            ArgumentNullException.ThrowIfNull(entity);
+            
+
+            var existingBook = await _context.Books
+                .FirstOrDefaultAsync(b => b.Id == entity.Id);
+            
+            if (existingBook == null)
+            {
+                throw new KeyNotFoundException($"Книга с ID {entity.Id} не найдена для обновления");
+            }
+            
+            try
+            {
+
+                _context.Books.Update(entity);
+                await _context.SaveChangesAsync();
+                await _cache.RemoveAsync("mainpage");
+                await _cache.RemoveAsync($"book:{entity.Id}");
+                return entity;
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new InvalidOperationException($"Ошибка при обновлении книги '{entity.Title}'", ex);
+            }
         }
 
         public async Task UpdateCountAsync(Guid id, int count)
@@ -282,42 +334,66 @@ namespace Infrastructure.Repositories
         public async Task<Book?> AddAsync(Book entity)
         {
             ArgumentNullException.ThrowIfNull(entity);
-            if (await GetByIdAsync(entity.Id) != null)
+            
+            // Проверяем существование книги с tracking для корректной работы
+            var existingBook = await _context.Books
+                .FirstOrDefaultAsync(b => b.Id == entity.Id);
+            
+            if (existingBook != null)
             {
-                throw new InvalidOperationException($"Book with ID{entity.Id} exists");
+                throw new InvalidOperationException($"Book with ID {entity.Id} already exists");
             }
-            _context.Books.Add(entity);
-            await _context.SaveChangesAsync();
-            await _cache.RemoveAsync("mainpage");
-            return entity;
+            
+            try
+            {
+                _context.Books.Add(entity);
+                await _context.SaveChangesAsync();
+                await _cache.RemoveAsync("mainpage");
+                return entity;
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new InvalidOperationException($"Ошибка при добавлении книги '{entity.Title}'", ex);
+            }
         }
         public async Task<bool> AddAsyncWithExistsAuthorAndGenres(Book entity, List<Guid> authors, List<Guid> genres)
         {
-
-            using var transaction = _context.Database.BeginTransaction();
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var book = await AddAsync(entity);
+                _context.Books.Add(entity);
+                await _context.SaveChangesAsync();
+
                 if (authors.Count > 0)
                 {
-                    await AddAuthorsFromBdToBook(book.Id, authors);
+                    var authorsToAdd = await _context.Authors
+                        .Where(a => authors.Contains(a.Id)).ToListAsync();
+                    foreach (var author in authorsToAdd)
+                        entity.Authors.Add(author);
                 }
+
                 if (genres.Count > 0)
                 {
-                    await AddGenresFromBdToBook(book.Id, genres);
+                    var genresToAdd = await _context.Genres
+                        .Where(g => genres.Contains(g.Id)).ToListAsync();
+                    foreach (var genre in genresToAdd)
+                        entity.Genres.Add(genre);
                 }
+
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 await _cache.RemoveAsync("mainpage");
                 return true;
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
-                throw new Exception($"Ошбика выполнения транзакции с книгой {entity.Id} {entity.Title}");
+                await transaction.RollbackAsync();
+                throw new Exception($"Ошибка транзакции: {ex.Message}", ex);
+
+
             }
-
-
         }
-
     }
 }
+
+

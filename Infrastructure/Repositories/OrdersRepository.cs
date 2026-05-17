@@ -58,6 +58,7 @@ namespace Infrastructure.Repositories
         public async Task<Order?> GetDetailedByIdAsync(int id)
         {
             return await _context.Orders.AsNoTracking()
+                .AsSplitQuery()
                 .Include(o => o.Customer)
                 .Include(o => o.Items)
                     .ThenInclude(oi => oi.Book)

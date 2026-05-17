@@ -27,6 +27,7 @@ namespace Infrastructure.Repositories
 
             return await _context.CartItems
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(x => x.Book)
                     .ThenInclude(b => b.Authors)
                 .Include(x => x.Book)

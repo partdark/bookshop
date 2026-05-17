@@ -17,25 +17,22 @@ namespace Application.Services
         private readonly IOrdersRepository _ordersRepository;
         private readonly IBooksRepository _booksRepository;
         private readonly HybridCache _cache;
-       
 
-        public OrderService(IOrdersRepository ordersRepository, IBooksRepository booksRepository,  HybridCache hybridCache)
+
+        public OrderService(IOrdersRepository ordersRepository, IBooksRepository booksRepository, HybridCache hybridCache)
         {
             _ordersRepository = ordersRepository;
             _booksRepository = booksRepository;
             _cache = hybridCache;
-        
+
         }
 
         public async Task<int> Add(AddOrderDto orderDto)
         {
-            using var transaction = await _ordersRepository.BeginTransactionAsync();
-            try
-            {
-                 var orderItems = new List<OrderItems>();
+            var orderItems = new List<OrderItems>();
             decimal totalPrice = 0;
 
-        
+
             var books = new Dictionary<Guid, Book>();
             foreach (var itemDto in orderDto.Items)
             {
@@ -57,11 +54,11 @@ namespace Application.Services
                     PriceAtPurchase = book.Price
                 });
                 totalPrice += book.Price * itemDto.Count;
-                
+
 
             }
 
-          
+
             foreach (var itemDto in orderDto.Items)
             {
                 var newCount = books[itemDto.BookId].Count - itemDto.Count;
@@ -80,13 +77,6 @@ namespace Application.Services
             await _ordersRepository.AddAsync(order);
             await _cache.RemoveAsync("mainpage");
             return order.Id;
-            }
-            catch 
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-           
         }
 
         public async Task<bool> Delete(int id)
