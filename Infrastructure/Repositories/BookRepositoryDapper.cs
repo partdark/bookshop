@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
                                 LEFT JOIN ""AuthorBook"" ab ON a.""Id"" = ab.""AuthorsId""
                                 WHERE ab.""BooksId"" = @Id
                                                         ";
-            var authors = (await _connection.QueryAsync<Author?>(sqlAuthors, new { Id = id })).ToList();
+            var authors = (await _connection.QueryAsync<Author>(sqlAuthors, new { Id = id })).ToList();
 
 
 
@@ -39,7 +39,7 @@ namespace Infrastructure.Repositories
                                 LEFT JOIN ""BookGenre"" bg ON g.""Id"" = bg.""GenresId""
                                 WHERE bg.""BooksId"" = @Id
                                                         ";
-            var genres = (await _connection.QueryAsync<Genre?>(sqlGenrs, new { Id = id })).ToList();
+            var genres = (await _connection.QueryAsync<Genre>(sqlGenrs, new { Id = id })).ToList();
 
 
 
