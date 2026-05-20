@@ -1,24 +1,30 @@
+using Dapper;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using Npgsql;
+using System.Data;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 //using System.Linq.Dynamic.Core;
 
 namespace Infrastructure.Repositories
 {
     public partial class BooksRepository : IBooksRepository
     {
+        private readonly NpgsqlConnection _connection;
         private readonly BookShopContext _context;
         private readonly HybridCache _cache;
 
 
-        public BooksRepository(BookShopContext context, HybridCache hybridCache)
+        public BooksRepository(BookShopContext context, HybridCache hybridCache, IDbConnection? connectionDapper = null)
         {
             _context = context;
             _cache = hybridCache;
-
+            _connection = connectionDapper as NpgsqlConnection ?? 
+                throw new ArgumentNullException("Невозможно получить строку подключения");
         }
 
 
@@ -167,7 +173,7 @@ namespace Infrastructure.Repositories
         }
 
 
-        public async Task<Book?> GetByIdAsync(Guid id)
+        public async Task<Book?> GetByIdAsyncEFCORE(Guid id)
         {
             var entity = await _context.Books.AsNoTracking()
                   .Include(a => a.Authors)
@@ -179,6 +185,8 @@ namespace Infrastructure.Repositories
 
             return entity;
         }
+      
+       
 
         public async Task<bool> DeleteAsync(Guid id)
         {
@@ -267,10 +275,14 @@ namespace Infrastructure.Repositories
 
         }
 
-        public async Task<List<Guid>> GetIdsAsync()
+        public async Task<List<Guid>> GetIdsAsyncEFCORE()
         {
             return await _context.Books.AsNoTracking().Select(b => b.Id).ToListAsync();
         }
+    
+
+
+    
 
         public async Task<Book> UpdateAsync(Book entity)
         {

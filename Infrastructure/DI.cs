@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
+using System.Data;
 
 
 
@@ -17,6 +19,8 @@ namespace Infrastructure
         {
 
             services.AddDbContextPool<BookShopContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped<IDbConnection>(provider =>
+        new NpgsqlConnection(configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IBooksRepository, BooksRepository>();
             services.AddScoped<IAuthorsRepository, AuthorsRepository>();
             services.AddScoped<ICustomersRepository, CustomersRepository>();
