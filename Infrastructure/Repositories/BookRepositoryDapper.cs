@@ -14,8 +14,6 @@ namespace Infrastructure.Repositories
             Console.WriteLine(id);
             if (_connection.State != ConnectionState.Open)
                 await _connection.OpenAsync();
-            if (_connection.State != ConnectionState.Open)
-                await _connection.OpenAsync();
 
             var sql = @"SELECT * FROM ""Books"" WHERE ""Id"" = @Id;
                 SELECT a.* FROM ""Authors"" a JOIN ""AuthorBook"" ab ON a.""Id"" = ab.""AuthorsId"" WHERE ab.""BooksId"" = @Id;
