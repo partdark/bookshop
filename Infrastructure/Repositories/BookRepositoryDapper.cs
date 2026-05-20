@@ -14,54 +14,39 @@ namespace Infrastructure.Repositories
             Console.WriteLine(id);
             if (_connection.State != ConnectionState.Open)
                 await _connection.OpenAsync();
-            var sqlBook = @"SELECT * FROM ""Books"" b where b.""Id"" = @Id LIMIT 1                       
-                                                                             ";
-            var book = await _connection.QueryFirstOrDefaultAsync<Book?>(sqlBook, new { Id = id });
+            if (_connection.State != ConnectionState.Open)
+                await _connection.OpenAsync();
 
-            if (book == null)
+            var sql = @"SELECT * FROM ""Books"" WHERE ""Id"" = @Id;
+                SELECT a.* FROM ""Authors"" a JOIN ""AuthorBook"" ab ON a.""Id"" = ab.""AuthorsId"" WHERE ab.""BooksId"" = @Id;
+                SELECT g.* FROM ""Genre"" g JOIN ""BookGenre"" bg ON g.""Id"" = bg.""GenresId"" WHERE bg.""BooksId"" = @Id;
+               ";
+
+            using (var data = await _connection.QueryMultipleAsync(sql, new { Id = id }))
             {
-                return null;
-            }
-            Console.WriteLine(book.Id);
+                var book = await data.ReadFirstOrDefaultAsync<Book>();
+                if (book == null) return null;
 
-            var sqlAuthors = @"SELECT a.* 
-                            FROM ""Authors"" a
-                                LEFT JOIN ""AuthorBook"" ab ON a.""Id"" = ab.""AuthorsId""
-                                WHERE ab.""BooksId"" = @Id
-                                                        ";
-            var authors = (await _connection.QueryAsync<Author>(sqlAuthors, new { Id = id })).ToList();
+                book.Authors = (await data.ReadAsync<Author>()).ToList();
+                book.Genres = (await data.ReadAsync<Genre>()).ToList();
 
-
-
-
-            var sqlGenrs = @"SELECT g.* 
-                            FROM ""Genre"" g
-                                LEFT JOIN ""BookGenre"" bg ON g.""Id"" = bg.""GenresId""
-                                WHERE bg.""BooksId"" = @Id
-                                                        ";
-            var genres = (await _connection.QueryAsync<Genre>(sqlGenrs, new { Id = id })).ToList();
-
-
-
-
-
-            var sqlReviews = @"SELECT r.*,c.*  FROM ""Reviews"" r 
+                var sqlReviews = @"SELECT r.*,c.*  FROM ""Reviews"" r 
                               LEFT JOIN ""AspNetUsers"" c ON r.""CustomerId"" = c.""Id""
                               WHERE r.""BookId"" = @Id
                                                             ";
-            var reviews = (await _connection.QueryAsync<Review, Customer, Review>(sqlReviews, (reviews, customer) =>
-            {
-                if (customer != null)
-                    reviews.Customer = customer;
-                return reviews;
-            }, new { Id = id }, splitOn: "Id")).ToList();
-            book.Authors = authors;
-            book.Genres = genres;
-            book.Reviews = reviews;
+                book.Reviews = (await _connection.QueryAsync<Review, Customer, Review>(sqlReviews, (reviews, customer) =>
+                {
+                    if (customer != null)
+                        reviews.Customer = customer;
+                    return reviews;
+                }, new { Id = id }, splitOn: "Id")).ToList();
 
 
-            return book;
 
+                return book;
+
+
+            }
         }
 
         public async Task<List<Guid>> GetIdsAsync()
