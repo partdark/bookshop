@@ -94,7 +94,6 @@ namespace Application.Services
 
         public BookResponseDto? ConvertToDto(Book book)
         {
-            Console.WriteLine(book.Reviews == null ? "ONO NULL" : "ONO NE NULL", book.Id);
             return new BookResponseDto(
                 book.Id,
                book.Title,
