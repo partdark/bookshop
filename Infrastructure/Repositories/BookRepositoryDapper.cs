@@ -15,9 +15,10 @@ namespace Infrastructure.Repositories
             if (_connection.State != ConnectionState.Open)
                 await _connection.OpenAsync();
 
-            var sql = @"SELECT * FROM ""Books"" WHERE ""Id"" = @Id;
-                SELECT a.* FROM ""Authors"" a JOIN ""AuthorBook"" ab ON a.""Id"" = ab.""AuthorsId"" WHERE ab.""BooksId"" = @Id;
-                SELECT g.* FROM ""Genre"" g JOIN ""BookGenre"" bg ON g.""Id"" = bg.""GenresId"" WHERE bg.""BooksId"" = @Id;
+            var sql = @"
+                SELECT * FROM ""Books"" WHERE ""Id"" = @Id;
+                SELECT a.""Name"" FROM ""Authors"" a JOIN ""AuthorBook"" ab ON a.""Id"" = ab.""AuthorsId"" WHERE ab.""BooksId"" = @Id;
+                SELECT g.""Name"" FROM ""Genre"" g JOIN ""BookGenre"" bg ON g.""Id"" = bg.""GenresId"" WHERE bg.""BooksId"" = @Id;
                ";
 
             using (var data = await _connection.QueryMultipleAsync(sql, new { Id = id }))
@@ -28,7 +29,7 @@ namespace Infrastructure.Repositories
                 book.Authors = (await data.ReadAsync<Author>()).ToList();
                 book.Genres = (await data.ReadAsync<Genre>()).ToList();
 
-                var sqlReviews = @"SELECT r.*,c.*  FROM ""Reviews"" r 
+                var sqlReviews = @"SELECT r.*,c.""Id"", c.""UserName""  FROM ""Reviews"" r 
                               LEFT JOIN ""AspNetUsers"" c ON r.""CustomerId"" = c.""Id""
                               WHERE r.""BookId"" = @Id
                                                             ";
