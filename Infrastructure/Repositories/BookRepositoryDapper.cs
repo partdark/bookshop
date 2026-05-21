@@ -17,7 +17,7 @@ namespace Infrastructure.Repositories
 
             var sql = @"
                 SELECT * FROM ""Books"" WHERE ""Id"" = @Id;
-                SELECT a.""Name"" FROM ""Authors"" a JOIN ""AuthorBook"" ab ON a.""Id"" = ab.""AuthorsId"" WHERE ab.""BooksId"" = @Id;
+                SELECT a.""Name"", a.""Year"" FROM ""Authors"" a JOIN ""AuthorBook"" ab ON a.""Id"" = ab.""AuthorsId"" WHERE ab.""BooksId"" = @Id;
                 SELECT g.""Name"" FROM ""Genre"" g JOIN ""BookGenre"" bg ON g.""Id"" = bg.""GenresId"" WHERE bg.""BooksId"" = @Id;
                ";
 

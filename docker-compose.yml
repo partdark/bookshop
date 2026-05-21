@@ -5,16 +5,16 @@ services:
       POSTGRES_DB: bookshopdb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_SHARED_BUFFERS: 250MB
-      POSTGRES_EFFECTIVE_CACHE_SIZE: 500MB
-      POSTGRES_WORK_MEM: 28MB
+      POSTGRES_SHARED_BUFFERS: 2500MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 5000MB
+      POSTGRES_WORK_MEM: 280MB
     ports:
       - "5435:5432"
     volumes:
       - bookshopdb_data:/var/lib/postgresql/data
     command: >
       postgres
-      -c max_connections=100
+      -c max_connections=1000
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -59,8 +59,8 @@ services:
       Jwt__Issuer: "bookshop-api"
       Jwt__Audience: "bookshop-client"
       Jwt__ExpiresInMinutes: "1440"
-      AdminSeed__Email: "admin@bookshop.com"
-      AdminSeed__Password: "Admin1234"
+      AdminSeed__Email: "admin@admin"
+      AdminSeed__Password: "admin"
     depends_on:
       postgres:
         condition: service_healthy
@@ -133,12 +133,25 @@ services:
     restart: unless-stopped
     networks:
       - bookshop-network
+  dufs:
+    image: sigoden/dufs:latest
+    container_name: resourseserver-1
+    ports:
+      - "5034:5000" 
+    volumes:
+      - dufs_resourseserver:/var/lib/resourses 
+    command: var/lib/resourses  -A
+    restart: unless-stopped
+    networks:
+      - bookshop-network
+      
 
 volumes:
   bookshopdb_data:
   prometheus_data:
   grafana_data:
   pgadmin_data:
+  dufs_resourseserver:
  # redis_data:
 
 networks:
