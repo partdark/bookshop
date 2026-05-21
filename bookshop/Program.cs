@@ -99,7 +99,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddRateLimiter(options =>
 {
-   
+
     options.AddFixedWindowLimiter("auth", limiterOptions =>
     {
         limiterOptions.PermitLimit = 10;
@@ -108,7 +108,7 @@ builder.Services.AddRateLimiter(options =>
         limiterOptions.QueueLimit = 0;
     });
 
-   
+
     options.AddFixedWindowLimiter("api", limiterOptions =>
     {
         limiterOptions.PermitLimit = 200;
@@ -138,7 +138,7 @@ using (var scope = app.Services.CreateScope())
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole<Guid>(role));
 
-      
+
         var adminEmail = builder.Configuration["AdminSeed:Email"] ?? "admin@bookshop.com";
         var adminPassword = builder.Configuration["AdminSeed:Password"] ?? "Admin1234";
         if (await userManager.FindByEmailAsync(adminEmail) == null)
@@ -157,14 +157,15 @@ using (var scope = app.Services.CreateScope())
         }
 
         await DbSeeder.SeedAsync(context);
-    }    catch (Exception ex)
+    }
+    catch (Exception ex)
     {
         services.GetRequiredService<ILogger<Program>>()
                 .LogError(ex, "An error occurred while seeding the database.");
     }
 }
 
-if ( app.Environment.IsDevelopment() || true)
+if (app.Environment.IsDevelopment() || true)
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Bookshop API v1"));

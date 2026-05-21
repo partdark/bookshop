@@ -38,7 +38,7 @@ namespace Infrastructure.Repositories
             return entity;
         }
 
-        // Явная реализация базового интерфейса — не используется для Customer
+        
         async Task<Customer?> IRepository<Customer>.AddAsync(Customer entity)
             => await AddAsync(entity, string.Empty);
 
@@ -78,7 +78,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Customer> UpdateAsync(Customer entity)
         {
-            // Используем UserManager чтобы не затронуть PasswordHash и SecurityStamp
+          
             var tracked = await _userManager.FindByIdAsync(entity.Id.ToString());
             if (tracked == null) throw new InvalidOperationException("Customer not found");
 

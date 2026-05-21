@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Infrastructure.Data
 {
-    public class BookShopContext : IdentityDbContext< Customer, IdentityRole<Guid> , Guid>
+    public class BookShopContext : IdentityDbContext<Customer, IdentityRole<Guid> , Guid>
     {
 
         public BookShopContext(DbContextOptions options) : base(options)
