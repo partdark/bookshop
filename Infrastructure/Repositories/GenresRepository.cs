@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Genre?> GetByIdAsync(Guid id)
         {
-            var genre = _context.Genres.AsNoTracking().FirstOrDefault(g => g.Id == id);
+            var genre =  await _context.Genres.AsNoTracking().FirstOrDefaultAsync(g => g.Id == id);
 
             return genre;
         }
