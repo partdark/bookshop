@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Domain.Entities;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,6 +10,9 @@ namespace Infrastructure.Repositories
 {
     partial class BooksRepository
     {
+        
+
+        
         public async Task<Book?> GetByIdAsync(Guid id)
         {
             Console.WriteLine(id);

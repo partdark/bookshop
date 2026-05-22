@@ -64,7 +64,8 @@ namespace Infrastructure.Repositories
 
 
             var result = await q.GroupBy(o => o.Status).Select(o => new ReportOrderMoney(o.Key.ToString(), o.Count(), o.Sum(p => p.TotalPrice))).ToListAsync();
-            result.Add(new ReportOrderMoney("Total", result.Select(r => r.Count).Sum(), result.Select(r => r.TotalMoney).Sum()));
+            //fronted сам считает           
+            //  result.Add(new ReportOrderMoney("Total", result.Select(r => r.Count).Sum(), result.Select(r => r.TotalMoney).Sum()));
 
             return result;
 
@@ -73,9 +74,9 @@ namespace Infrastructure.Repositories
 
         private DateTime ToUtc(DateTime date)
         {
-            return date.Kind == DateTimeKind.Unspecified
-                ? DateTime.SpecifyKind(date, DateTimeKind.Utc)
-                : date.ToUniversalTime();
+            return date.Kind == DateTimeKind.Unspecified || date.Kind == DateTimeKind.Local
+                ? date.ToUniversalTime()
+                : date;
         }
     }
 }

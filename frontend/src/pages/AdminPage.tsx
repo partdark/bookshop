@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { getAllOrders, updateOrderStatus, deleteBook, addBook, updateBookCount, registerAdmin, getAuthors, addAuthor, addGenre } from '../api/admin'
 import { getCatalog, getGenres } from '../api/books'
+import { getOrdersCount, getMoneyByType } from '../api/reports'
 import OrderDetailModal from '../components/OrderDetailModal'
+import PieChart from '../components/PieChart'
 import type { Order, BookListItem } from '../types'
 
-type Tab = 'orders' | 'books' | 'addBook' | 'addAuthor' | 'addGenre' | 'addAdmin'
+type Tab = 'orders' | 'books' | 'addBook' | 'addAuthor' | 'addGenre' | 'addAdmin' | 'reports'
 
 const ORDER_STATUSES = ['Placed', 'Shipped', 'Delivered', 'Cancelled']
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -38,6 +40,7 @@ export default function AdminPage() {
             ['addAuthor', '✍️ Добавить автора'],
             ['addGenre',  '🏷️ Добавить жанр'],
             ['addAdmin',  '👤 Добавить сотрудника'],
+            ['reports',   '📊 Отчеты'],
           ] as [Tab, string][]).map(([t, label]) => (
             <button key={t} style={{ ...s.tabBtn, ...(tab === t ? s.tabActive : {}) }} onClick={() => setTab(t)}>
               {label}
@@ -51,6 +54,7 @@ export default function AdminPage() {
           {tab === 'addAuthor' && <AddAuthorTab showToast={showToast} />}
           {tab === 'addGenre'  && <AddGenreTab showToast={showToast} />}
           {tab === 'addAdmin'  && <AddAdminTab showToast={showToast} />}
+          {tab === 'reports'   && <ReportsTab showToast={showToast} />}
         </div>
       </div>
     </div>
@@ -443,6 +447,116 @@ function AddAdminTab({ showToast }: { showToast: (m: string, ok?: boolean) => vo
         {loading ? 'Регистрация...' : 'Зарегистрировать'}
       </button>
     </form>
+  )
+}
+
+
+function ReportsTab({ showToast }: { showToast: (m: string, ok?: boolean) => void }) {
+  const [ordersData, setOrdersData] = useState<{ label: string; value: number; color: string }[]>([])
+  const [moneyData, setMoneyData] = useState<{ label: string; value: number; color: string }[]>([])
+  const [loading, setLoading] = useState(true)
+  const [dateRange, setDateRange] = useState({
+    startDate: '',
+    endDate: '',
+  })
+
+  useEffect(() => {
+    loadReports()
+  }, [])
+
+  const loadReports = async () => {
+    setLoading(true)
+    try {
+      const formatDate = (date: string) => {
+        const [year, month, day] = date.split('-')
+        return `${day}.${month}.${year}`
+      }
+      
+      const startDate = dateRange.startDate ? formatDate(dateRange.startDate) : undefined
+      const endDate = dateRange.endDate ? formatDate(dateRange.endDate) : undefined
+      
+      const [ordersRes, moneyRes] = await Promise.all([
+        getOrdersCount(startDate, endDate),
+        getMoneyByType(startDate, endDate),
+      ])
+      
+      console.log('Orders response:', ordersRes)
+      console.log('Money response:', moneyRes)
+
+      if (!Array.isArray(ordersRes) || !Array.isArray(moneyRes)) {
+        showToast('Неверный формат данных от сервера', false)
+        return
+      }
+
+      const colors = ['#2563eb', '#d97706', '#16a34a', '#dc2626', '#9333ea', '#0891b2', '#ea580c', '#15803d']
+
+      setOrdersData(ordersRes.map((item, i) => ({
+        label: item.name,
+        value: item.count,
+        color: colors[i % colors.length],
+      })))
+
+      setMoneyData(moneyRes.map((item, i) => ({
+        label: item.name,
+        value: Math.round(item.totalMoney),
+        color: colors[i % colors.length],
+      })))
+    } catch (err: any) {
+      console.error('Reports error:', err)
+      showToast(`Ошибка загрузки отчетов: ${err?.response?.data || err.message}`, false)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDateChange = (key: 'startDate' | 'endDate', value: string) => {
+    setDateRange(prev => ({ ...prev, [key]: value }))
+  }
+
+  if (loading) return <div style={s.empty}>Загрузка...</div>
+
+  return (
+    <div>
+      <h2 style={s.sectionTitle}>Отчеты</h2>
+      <div style={{ ...s.fieldGroup, maxWidth: 400 }}>
+        <label style={s.label}>Период (опционально)</label>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <input
+            type="date"
+            value={dateRange.startDate}
+            onChange={e => handleDateChange('startDate', e.target.value)}
+            style={{ ...s.input, flex: 1 }}
+          />
+          <input
+            type="date"
+            value={dateRange.endDate}
+            onChange={e => handleDateChange('endDate', e.target.value)}
+            style={{ ...s.input, flex: 1 }}
+          />
+        </div>
+        <button
+          onClick={loadReports}
+          style={{ ...s.saveBtn, marginTop: 8, padding: '8px 16px', fontSize: 14 }}
+        >
+          Обновить
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginTop: 24 }}>
+        <div style={{ background: '#fff', padding: 20, borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <PieChart
+            title="Количество заказов по типам"
+            data={ordersData}
+          />
+        </div>
+        <div style={{ background: '#fff', padding: 20, borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <PieChart
+            title="Сумма денег по типам (₽)"
+            data={moneyData}
+          />
+        </div>
+      </div>
+    </div>
   )
 }
 

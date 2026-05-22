@@ -13,17 +13,17 @@ namespace Infrastructure.Repositories
 {
     public partial class BooksRepository : IBooksRepository
     {
-        private readonly NpgsqlConnection _connection;
+       
         private readonly BookShopContext _context;
         private readonly HybridCache _cache;
+        private readonly NpgsqlConnection _connection;
 
 
-        public BooksRepository(BookShopContext context, HybridCache hybridCache, IDbConnection? connectionDapper = null)
+        public BooksRepository(BookShopContext context, HybridCache hybridCache, IDbConnection connectionDapper)
         {
             _context = context;
             _cache = hybridCache;
-            _connection = connectionDapper as NpgsqlConnection ??
-                throw new ArgumentNullException("Невозможно получить строку подключения");
+            _connection = (NpgsqlConnection)connectionDapper;
         }
 
 
