@@ -54,7 +54,7 @@ namespace Bookshop.NUnitTests.Tests.Repositories
                 new Genre { Id = Guid.NewGuid(), Name = "Genre 2" }
             };
             _mockContext.Setup(c => c.Genres).ReturnsDbSet(genres);
-            var expected = genres.Select(g => new IdWithNAme(g.Id, g.Name)).ToList();
+            var expected = genres.Select(g => new IdWithName(g.Id, g.Name)).ToList();
 
            
             var result = await _repository.GetIdsWithNamesAsync();

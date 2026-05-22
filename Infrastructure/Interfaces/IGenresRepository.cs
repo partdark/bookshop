@@ -6,7 +6,7 @@ using Infrastructure.Dto;
 
 namespace Infrastructure.Interfaces
 {
-    public interface IGenresRepository : IRepository<Genre> { public Task<List<IdWithNAme>> GetIdsWithNamesAsync(); }
+    public interface IGenresRepository : IRepository<Genre> { public Task<List<IdWithName>> GetIdsWithNamesAsync(); }
 
 
 }

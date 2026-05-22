@@ -39,10 +39,14 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var order = await GetByIdAsync(id);
-            if (order == null) { return false; }
-            _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
+            var OrderCount = await _context.Orders.Where(o => o.Id == id).ExecuteDeleteAsync();
+
+            if (OrderCount == 0)
+            {
+                return false;
+            }
+
+            
             return true;
         }
 

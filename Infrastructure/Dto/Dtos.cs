@@ -23,7 +23,7 @@ namespace Infrastructure.Dto
         public List<BookBaseData> Books { get; set; } = new();
     }
 
-    public record IdWithNAme(Guid Id, string Name);
+    public record IdWithName(Guid Id, string Name);
 
     public record ReportOrderCount(string Name, int Count);
 

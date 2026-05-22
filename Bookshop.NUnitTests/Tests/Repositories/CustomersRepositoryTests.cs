@@ -58,7 +58,7 @@ namespace Bookshop.NUnitTests.Tests.Repositories
                 new() { Id = Guid.NewGuid(), UserName = "Customer 2" }
             };
             _mockContext.Setup(c => c.Users).ReturnsDbSet(customers);
-            var expected = customers.Select(g => new IdWithNAme(g.Id, g.UserName)).ToList();
+            var expected = customers.Select(g => new IdWithName(g.Id, g.UserName)).ToList();
 
             
             var result = await _repository.GetIdsWithNamesAsync();

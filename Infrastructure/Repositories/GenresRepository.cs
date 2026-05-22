@@ -31,14 +31,12 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var genre = await GetByIdAsync(id);
+            var genreCount = await _context.Genres.Where(g => g.Id == id).ExecuteDeleteAsync();
 
-            if (genre == null)
+            if (genreCount == 0)
             {
                 throw new InvalidOperationException($"Cant find Genre with ID:{id}");
             }
-            _context.Genres.Remove(genre);
-            await _context.SaveChangesAsync();
             return true;
         }
 
@@ -65,9 +63,9 @@ namespace Infrastructure.Repositories
             return entity;
         }
 
-        public async Task<List<IdWithNAme>> GetIdsWithNamesAsync()
+        public async Task<List<IdWithName>> GetIdsWithNamesAsync()
         {
-            return await _context.Genres.Select(g => new IdWithNAme (g.Id, g.Name)).ToListAsync();
+            return await _context.Genres.Select(g => new IdWithName (g.Id, g.Name)).ToListAsync();
         }
     }
 

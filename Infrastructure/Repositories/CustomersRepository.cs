@@ -44,13 +44,12 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var entity = await GetByIdAsync(id);
-            if (entity == null)
+          var customerCount = await _context.Users.Where(u => u.Id == id).ExecuteDeleteAsync();
+
+            if (customerCount == 0)
             {
                 return false;
             }
-            _context.Users.Remove(entity);
-            await _context.SaveChangesAsync();
             return true;
         }
 
@@ -70,9 +69,9 @@ namespace Infrastructure.Repositories
             return await _context.Users.AsNoTracking().Select(b => b.Id).ToListAsync();
         }
 
-        public async Task<List<IdWithNAme>> GetIdsWithNamesAsync()
+        public async Task<List<IdWithName>> GetIdsWithNamesAsync()
         {
-            return await _context.Users.AsNoTracking().Select(b => new IdWithNAme ( b.Id, b.UserName )).ToListAsync();
+            return await _context.Users.AsNoTracking().Select(b => new IdWithName ( b.Id, b.UserName )).ToListAsync();
            
         }
 
