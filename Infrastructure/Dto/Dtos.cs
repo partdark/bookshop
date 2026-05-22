@@ -24,4 +24,8 @@ namespace Infrastructure.Dto
     }
 
     public record IdWithNAme(Guid Id, string Name);
+
+    public record ReportOrderCount(string Name, int Count);
+
+    public record ReportOrderMoney(string Name, int Count, decimal TotalMoney);
 }
