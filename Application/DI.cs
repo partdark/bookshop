@@ -26,6 +26,7 @@ namespace Application
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRatingService, RatingService>();
+            services.AddScoped<IReportService, ReportService>();
             services.AddHostedService<RatingRecalculationStartupService>();
             /*    services.AddStackExchangeRedisCache(options =>
                 {

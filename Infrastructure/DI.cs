@@ -29,6 +29,7 @@ namespace Infrastructure
             services.AddScoped<IReviewsRepository, ReviewsRepository>();
             services.AddScoped<IOrderItemsRepository, OrderItemsRepository>();
             services.AddScoped<ICartRepository, CartRepository>();
+            services.AddScoped<IReportRepository,ReportRepository>();
             services.AddIdentity<Customer, IdentityRole<Guid>>(options =>
              {
                  options.SignIn.RequireConfirmedAccount = false;
