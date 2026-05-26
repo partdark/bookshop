@@ -19,6 +19,8 @@ namespace Infrastructure.Dto
 
     public record ListWithBooksBaseData(int TotalCount, int PageNumber, int PageCapacity, bool HasNext, bool HasPrevious)
     {
+      
+
         [JsonInclude]
         public List<BookBaseData> Books { get; set; } = new();
     }

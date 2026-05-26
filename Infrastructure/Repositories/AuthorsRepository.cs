@@ -37,7 +37,7 @@ namespace Infrastructure.Repositories
                 throw new InvalidOperationException($"Author with ID:{author.Id} exists");
             }
 
-            _context.Authors.Add(author);
+           await _context.Authors.AddAsync(author);
             await _context.SaveChangesAsync();
             return author;
         }

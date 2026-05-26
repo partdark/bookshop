@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Infrastructure.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -17,7 +18,7 @@ namespace bookshop.Controllers
         {
             _reportService = reportService;
         }
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("report/orders")]
         [ProducesResponseType(typeof(List<ReportOrderCount>), StatusCodes.Status200OK)]
           [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -44,7 +45,7 @@ namespace bookshop.Controllers
 
         }
 
-       // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("report/money")]
         [ProducesResponseType(typeof(List<ReportOrderCount>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
