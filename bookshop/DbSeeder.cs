@@ -55,7 +55,7 @@ public static class DbSeeder
                 Title = "Идиот",
                 Description = "История князя Мышкина — человека с чистой душой, попавшего в мир лжи и страстей петербургского общества.",
                 Rating = 4.7f, Price = 620, Count = 10, PublicationYear = 1869,
-                UrlImage = "https://cdn.azbooka.ru/cv/w1100/e7ee6556-090e-4648-8806-63d536b75936.jpg",
+                UrlImage = "http://localhost:5034/Pictures/e7ee6556-090e-4648-8806-63d536b75936.jpg",
                 Authors = new List<Author> { a["Фёдор Достоевский"] },
                 Genres = new List<Genre> { g["Классика"], g["Роман"] }
             },
@@ -75,7 +75,7 @@ public static class DbSeeder
                 Title = "Анна Каренина",
                 Description = "Трагическая история замужней женщины, решившейся на любовь вне брака. Роман о свободе, долге и неизбежности судьбы.",
                 Rating = 4.7f, Price = 750, Count = 12, PublicationYear = 1878,
-                UrlImage = "https://cdn.azbooka.ru/cv/w1100/a7fa791d-1eaa-40e5-9418-1c84d01a69b9.jpg",
+                UrlImage = "http://localhost:5034/Pictures/a7fa791d-1eaa-40e5-9418-1c84d01a69b9.jpg",
                 Authors = new List<Author> { a["Лев Толстой"] },
                 Genres = new List<Genre> { g["Классика"], g["Роман"] }
             },
