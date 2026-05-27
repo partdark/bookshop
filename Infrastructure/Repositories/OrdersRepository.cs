@@ -41,7 +41,7 @@ namespace Infrastructure.Repositories
                     .Where(c => order.Items.Select(o => o.BookId).Contains(c.Id))
                     .ToDictionaryAsync(b => b.Id);
 
-                if (booksInOrder.Count < order.Items.Count )
+                if (booksInOrder.Count < order.Items.Count)
                 {
                     throw new ArgumentException("Не все книги представлены на складе");
                 }
@@ -91,12 +91,12 @@ namespace Infrastructure.Repositories
 
                 await _context.SaveChangesAsync();
 
-                transaction.Commit();
+                await transaction.CommitAsync();
                 return newOrder.Id;
             }
             catch
             {
-               transaction.Rollback();
+                await transaction.RollbackAsync();
                 throw;
             }
         }
