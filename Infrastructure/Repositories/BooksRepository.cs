@@ -66,7 +66,7 @@ namespace Infrastructure.Repositories
                     q.OrderByDescending(b => b.Title) : q.OrderBy(b => b.Title);
             }
 
-
+            using var transaction =  await _context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted);
        
                 var totalCount = await q.CountAsync();
 
