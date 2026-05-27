@@ -47,9 +47,13 @@ namespace Infrastructure.Repositories
                 }
                 foreach (var item in order.Items)
                 {
-                    if (item.Count > booksInOrder[item.BookId].Count)
-                        throw new ArgumentException($"Недостаточно книг для {booksInOrder[item.BookId].Title}, " +
-                            $"необходимо {item.Count} при наличии {booksInOrder[item.BookId].Count}");
+                    if (!booksInOrder.TryGetValue(item.BookId, out var book))
+                    {
+                        throw new ArgumentException($"Не все книги представлены на складе {item.BookId}");
+                    }
+                    if (item.Count > book.Count)
+                        throw new ArgumentException($"Недостаточно книг для {book.Title}, " +
+                            $"необходимо {item.Count} при наличии {book.Count}");
                 }
 
                 var newOrder = new Order()
