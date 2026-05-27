@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Infrastructure.Dto;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Dto
 {
@@ -52,14 +53,7 @@ namespace Application.Dto
         [Phone, MaxLength(20)] string Phone,
         DateOnly DateOfBirth);
 
-    public record OrderItemDto(
-        [Required] Guid BookId,
-        [Range(1, 1000)] int Count,
-        [Range(0, 1_000_000)] decimal PriceAtPurchase);
 
-    public record AddOrderDto(
-        [Required] Guid CustomerId,
-        [Required, MinLength(1)] List<OrderItemDto> Items);
 
     public record OrderResponseDto(int Id, Guid CustomerId, DateTime CreatedDate, decimal TotalPrice,
         string Status, List<OrderItemDto> Items);

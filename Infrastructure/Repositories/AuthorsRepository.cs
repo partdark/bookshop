@@ -44,15 +44,9 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var author = await GetByIdAsync(id);
+            var author = await _context.Authors.Where(a => a.Id == id).ExecuteDeleteAsync();
 
-            if (author == null)
-            {
-                return false;
-            }
-            _context.Authors.Remove(author);
-            await _context.SaveChangesAsync();
-            return true;
+            return (author > 0);
 
 
         }

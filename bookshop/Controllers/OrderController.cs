@@ -1,5 +1,6 @@
 using Application.Dto;
 using Application.Interfaces;
+using Infrastructure.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace bookshop.Controllers
         public async Task<ActionResult<List<OrderResponseDto>>> GetAll()
             => Ok(await _orderService.GetAll());
 
+        [Authorize]
         [HttpGet("order/{id:int}")]
         public async Task<ActionResult<OrderResponseDto>> GetById(int id)
         {
@@ -24,13 +26,14 @@ namespace bookshop.Controllers
             return order == null ? NotFound() : Ok(order);
         }
 
+        [Authorize]
         [HttpGet("order/{id:int}/detail")]
         public async Task<ActionResult<OrderDetailDto>> GetDetailedById(int id)
         {
             var order = await _orderService.GetDetailedById(id);
             return order == null ? NotFound() : Ok(order);
         }
-
+        [Authorize]
         [HttpPost("order/add")]
         public async Task<ActionResult<int>> Add([FromBody] AddOrderDto order)
         {

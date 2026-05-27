@@ -13,7 +13,7 @@ namespace Infrastructure.Repositories
 {
     public partial class BooksRepository : IBooksRepository
     {
-       
+
         private readonly BookShopContext _context;
         private readonly HybridCache _cache;
         private readonly NpgsqlConnection _connection;
@@ -66,35 +66,35 @@ namespace Infrastructure.Repositories
                     q.OrderByDescending(b => b.Title) : q.OrderBy(b => b.Title);
             }
 
-            using var transaction =  await _context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted);
-       
-                var totalCount = await q.CountAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted);
 
-                if (totalCount == 0)
-                    return new ListWithBooksBaseData(0, 1, pageCapacity, false, false);
+            var totalCount = await q.CountAsync();
 
-                var lastPage = (int)Math.Ceiling((double)totalCount / pageCapacity);
-                pageNumber = Math.Min(pageNumber, lastPage);
+            if (totalCount == 0)
+                return new ListWithBooksBaseData(0, 1, pageCapacity, false, false);
 
-                var data = await q
-                    .Skip(pageCapacity * (pageNumber - 1))
-                    .Take(pageCapacity)
-                    .Select(b => new BookBaseData(
-                        b.Id, b.Title, b.Description, b.Rating,
-                        b.Price, b.UrlImage, b.Count, b.PublicationYear,
-                        b.Authors.Select(a => new BookAuthorData(a.Id, a.Name, a.Year)).ToList(),
-                        b.Genres.Select(g => new BookGenreData(g.Id, g.Name)).ToList()))
-                    .ToListAsync();
+            var lastPage = (int)Math.Ceiling((double)totalCount / pageCapacity);
+            pageNumber = Math.Min(pageNumber, lastPage);
 
-                var result = new ListWithBooksBaseData(totalCount, pageNumber, pageCapacity, pageNumber < lastPage, pageNumber > 1)
-                {
-                    Books = data
-                };
-             
-                return result;
-               
-           
-           
+            var data = await q
+                .Skip(pageCapacity * (pageNumber - 1))
+                .Take(pageCapacity)
+                .Select(b => new BookBaseData(
+                    b.Id, b.Title, b.Description, b.Rating,
+                    b.Price, b.UrlImage, b.Count, b.PublicationYear,
+                    b.Authors.Select(a => new BookAuthorData(a.Id, a.Name, a.Year)).ToList(),
+                    b.Genres.Select(g => new BookGenreData(g.Id, g.Name)).ToList()))
+                .ToListAsync();
+
+            var result = new ListWithBooksBaseData(totalCount, pageNumber, pageCapacity, pageNumber < lastPage, pageNumber > 1)
+            {
+                Books = data
+            };
+
+            return result;
+
+
+
         }
 
         public async Task<List<Guid>> AddAuthorsFromBdToBook(Guid bookId, List<Guid> authors)
@@ -177,7 +177,7 @@ namespace Infrastructure.Repositories
                   .Include(a => a.Authors)
                   .Include(g => g.Genres)
                   .Include(r => r.Reviews)
-                      .ThenInclude(r => r.Customer) 
+                      .ThenInclude(r => r.Customer)
                   .FirstOrDefaultAsync(b => b.Id == id);
 
             return entity;
@@ -307,22 +307,29 @@ namespace Infrastructure.Repositories
 
         public async Task UpdateCountAsync(Guid id, int count)
         {
-            await _context.Books
-                   .Where(b => b.Id == id)
-                   .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, count));
+            var updatedCount = await _context.Books
+                     .Where(b => b.Id == id)
+                     .ExecuteUpdateAsync(s => s.SetProperty(b => b.Count, count));
+            if (updatedCount == 0)
+            {
+                return;
+            }
             if (count == 0)
             {
                 await _cache.RemoveAsync("mainpage");
             }
-            // await _cache.RemoveAsync($"book:{id}");
+
             var cachedBook = await _cache.GetOrCreateAsync($"book:{id}",
                 async c => await GetByIdAsync(id)
                 );
             if (cachedBook != null)
             {
                 cachedBook.Count = count;
+                await _cache.SetAsync($"book:{id}", cachedBook);
+
             }
-            await _cache.SetAsync($"book:{id}", cachedBook);
+
+
         }
 
         public async Task PatchScalarFieldsAsync(Guid id, string title, string description, float rating, decimal price, string urlImage, int count, int publicationYear)

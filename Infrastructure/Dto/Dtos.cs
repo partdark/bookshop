@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Infrastructure.Dto
 {
@@ -30,4 +31,13 @@ namespace Infrastructure.Dto
     public record ReportOrderCount(string Name, int Count);
 
     public record ReportOrderMoney(string Name, int Count, decimal TotalMoney);
+
+    public record AddOrderDto(
+     [Required] Guid CustomerId,
+     [Required, MinLength(1)] List<OrderItemDto> Items);
+
+    public record OrderItemDto(
+        [Required] Guid BookId,
+        [Range(1, 1000)] int Count,
+        [Range(0, 1_000_000)] decimal PriceAtPurchase);
 }

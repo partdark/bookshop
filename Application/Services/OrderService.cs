@@ -1,6 +1,7 @@
 using Application.Dto;
 using Application.Interfaces;
 using Domain.Entities;
+using Infrastructure.Dto;
 using Infrastructure.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -29,54 +30,7 @@ namespace Application.Services
 
         public async Task<int> Add(AddOrderDto orderDto)
         {
-            var orderItems = new List<OrderItems>();
-            decimal totalPrice = 0;
-
-
-            var books = new Dictionary<Guid, Book>();
-            foreach (var itemDto in orderDto.Items)
-            {
-                var book = await _booksRepository.GetByIdAsync(itemDto.BookId);
-                if (book == null)
-                    throw new ArgumentException($"Книга с ID {itemDto.BookId} не найдена.");
-                if (book.Count < itemDto.Count)
-                    throw new ArgumentException($"Недостаточно экземпляров книги «{book.Title}»: доступно {book.Count}, запрошено {itemDto.Count}.");
-                books[itemDto.BookId] = book;
-            }
-
-            foreach (var itemDto in orderDto.Items)
-            {
-                var book = books[itemDto.BookId];
-                orderItems.Add(new OrderItems
-                {
-                    BookId = itemDto.BookId,
-                    Count = itemDto.Count,
-                    PriceAtPurchase = book.Price
-                });
-                totalPrice += book.Price * itemDto.Count;
-
-
-            }
-
-
-            foreach (var itemDto in orderDto.Items)
-            {
-                var newCount = books[itemDto.BookId].Count - itemDto.Count;
-                await _booksRepository.UpdateCountAsync(itemDto.BookId, newCount);
-            }
-
-            var order = new Order
-            {
-                CustomerId = orderDto.CustomerId,
-                CreatedDate = DateTime.UtcNow,
-                TotalPrice = totalPrice,
-                Status = OrderStatus.Placed,
-                Items = orderItems
-            };
-
-            await _ordersRepository.AddAsync(order);
-            await _cache.RemoveAsync("mainpage");
-            return order.Id;
+          return  await _ordersRepository.CreateAsync(orderDto);
         }
 
         public async Task<bool> Delete(int id)

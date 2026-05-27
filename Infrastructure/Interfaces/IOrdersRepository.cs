@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Infrastructure.Dto;
 
 
 
@@ -15,6 +16,8 @@ namespace Infrastructure.Interfaces
         Task<List<int>> GetIdsAsync();
         Task<Order> UpdateAsync(Order entity);
         Task<List<Order>> GetByCustomerIdAsync(Guid customerId);
+
+       Task<int> CreateAsync(AddOrderDto order);
     }
 
 
