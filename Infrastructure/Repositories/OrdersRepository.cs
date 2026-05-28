@@ -78,10 +78,11 @@ namespace Infrastructure.Repositories
                         Count = item.Count,
                         PriceAtPurchase = booksInOrder[item.BookId].Price,
                         Order = newOrder
+                       
                     };
                     priceSum += booksInOrder[item.BookId].Price * item.Count;
                     itemsInOrder.Add(orderItem);
-
+                    await _cache.RemoveAsync($"book{item.BookId}");
 
                 }
 
