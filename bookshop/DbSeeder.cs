@@ -45,7 +45,7 @@ public static class DbSeeder
                 Title = "Преступление и наказание",
                 Description = "Роман о студенте Раскольникове, совершившем убийство и терзаемом муками совести. Глубокое исследование психологии преступника и нравственного возрождения.",
                 Rating = 4.8f, Price = 590, Count = 15, PublicationYear = 1866,
-                UrlImage = "http://localhost:5034/Pictures/a915208d-9e3a-4293-beb9-06d77344f3d5.webp",
+                UrlImage = "http://localhost:5034/Pictures/a915208d-9e3a-4293-beb9-06d77344f3d5.jpg",
                 Authors = new List<Author> { a["Фёдор Достоевский"] },
                 Genres = new List<Genre> { g["Классика"], g["Психология"] }
             },
