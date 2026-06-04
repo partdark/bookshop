@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
         
         public async Task<Book?> GetByIdAsync(Guid id)
         {
-            Console.WriteLine(id);
+          
             if (_connection.State != ConnectionState.Open)
                 await _connection.OpenAsync();
 
