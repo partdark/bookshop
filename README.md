@@ -27,7 +27,10 @@ docker compose up --build
 | Фронтенд  | http://localhost:3000         |
 | API       | http://localhost:5000         |
 | Swagger   | http://localhost:8080/swagger |
-| PostgreSQL| localhost:5435                |
+| PostgreSQL| http://localhost:5435         |
+| pgadmin4  | http://localhost:5050         |
+| dufs      | http://localhost:5034         |
+| Grafana   | http://localhost:3001         |
 
 Остановить:
 
@@ -53,7 +56,7 @@ docker compose down -v
 CREATE DATABASE bookshopdb;
 ```
 
-Убедитесь, что пользователь `postgres` с паролем `postgres` имеет доступ, либо обновите строку подключения в `bookshop/appsettings.Development.json`:
+Убедитесь, что пользователь `postgres` с паролем `postgres` имеет доступ, или обновите строку подключения в `bookshop/appsettings.Development.json`:
 
 ```json
 "ConnectionStrings": {
@@ -62,6 +65,8 @@ CREATE DATABASE bookshopdb;
 ```
 
 ### 2. Применить миграции
+Миграции применяются автоматически, если этого не произошло, то выполните следущие действия, предварительно установив dotnet ef 
+https://learn.microsoft.com/en-us/ef/core/cli/dotnet
 
 Из корня репозитория (`bookshop/`):
 
@@ -76,9 +81,9 @@ cd bookshop/bookshop
 dotnet run
 ```
 
-API будет доступен по адресу:
-- http://localhost:5223
-- Swagger UI: http://localhost:5223/swagger
+API будет доступен по адресу (используется тот же адрес):
+- http://localhost:5000
+- Swagger UI: http://localhost:5000/swagger
 
 ### 4. Запустить фронтенд
 
